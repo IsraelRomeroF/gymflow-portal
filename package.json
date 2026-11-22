@@ -1,0 +1,41 @@
+{
+  "name": "@gymflow/portal",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "description": "Portal del socio de GymFlow (PWA instalable).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "packageManager": "pnpm@10.26.0",
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "typecheck": "tsc --noEmit",
+    "test:contraste": "node scripts/contraste.mjs",
+    "lint": "eslint app lib components",
+    "verify": "pnpm typecheck && pnpm lint && pnpm build",
+    "test:tokens": "node scripts/tokens-iguales.mjs",
+    "test:estilos": "node scripts/estilos-en-linea.mjs",
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test lib/nucleo.test.ts lib/acceso.test.ts"
+  },
+  "dependencies": {
+    "@gymflow/core": "link:../gymflow-core",
+    "lucide-react": "^1.48.0",
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.19.0"
+  }
+}

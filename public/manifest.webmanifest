@@ -1,0 +1,40 @@
+{
+  "name": "GymFlow",
+  "short_name": "GymFlow",
+  "description": "Tu membresía, tus clases y tus pagos",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#c8f23d",
+  "theme_color": "#111317",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mis pagos",
+      "url": "/pagos"
+    },
+    {
+      "name": "Clases",
+      "url": "/clases"
+    }
+  ]
+}

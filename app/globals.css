@@ -1,0 +1,576 @@
+@import './tokens.css';
+@import './compartido.css';
+
+/*
+ * Portal del socio — sistema de diseño.
+ *
+ * Misma familia que el panel del personal (tinta, acento volt, Geist), pero
+ * pensado para una mano y un pulgar: objetivos táctiles de 44 px o más,
+ * navegación abajo, una columna. En escritorio se centra como un teléfono.
+ */
+
+:root {
+  color-scheme: light;
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --selected-bg: var(--ink); --selected-fg: var(--on-ink);
+  --toast-bg: var(--ink); --toast-fg: var(--on-ink); --toast-line: transparent;
+  --surface-2: #eff0ec;
+  --line: #e3e5df;
+  --line-strong: #cfd2cb;
+  /* Contorno de un campo: 3:1 sobre la tarjeta y sobre el fondo (UI3-03). */
+  --field-line: #868b84;
+  --fg: #14161a;
+  --fg-2: #3d424b;
+  /* AA (≥4.5:1) también sobre --surface-2 (UI2-01). */
+  --muted: #5c626b;
+  --faint: #71777f;
+  --ink: #111317;
+  /* Texto sobre tinta: la credencial, el encabezado y el día elegido. */
+  --on-ink: #ffffff; --on-ink-muted: #a3a9b3;
+  --volt: #c8f23d;
+  --volt-strong: #a9d61a;
+  --volt-ink: #1b2400;
+  --primary: #14161a;
+  --primary-fg: #ffffff;
+  --ok: #117a3e;     --ok-soft: #e5f5ea;     --ok-line: #bfe5cc;
+  --warn: #9a5b00;   --warn-soft: #fff4de;   --warn-line: #f5d9a3;
+  --danger: #b42318; --danger-soft: #fdeceb; --danger-line: #f6c7c3;
+  --info: #1d5bd6;   --info-soft: #e8f0fe;   --info-line: #c4d6fb;
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(16, 18, 22, .04), 0 6px 20px rgba(16, 18, 22, .06);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--volt) 70%, transparent);
+  /* Foco de teclado: tinta con un respiro del fondo. El lima sobre blanco
+     daba 1.2:1 y no se veía (UI-01); la tinta contrasta en claro y oscuro. */
+  --focus: 0 0 0 2px var(--surface), 0 0 0 4px var(--fg);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Oscuro: el del sistema, salvo que se elija Claro, o elegido a mano (UI2-10). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b0d10;
+    --surface: #15181c;
+    --surface-2: #1c2025;
+    --line: #262a31;
+    --line-strong: #353a42;
+    --field-line: #6b727d;
+    --fg: #eef0f2;
+    --fg-2: #c5c9cf;
+    --muted: #9097a1;
+    --faint: #858b95;
+    --ink: #0a0b0e;
+    --primary: #c8f23d;
+    --primary-fg: #141a00;
+    --ok: #4ccf7f;     --ok-soft: #102a1a;     --ok-line: #1d4a2e;
+    --warn: #f2b54a;   --warn-soft: #2d2210;   --warn-line: #4f3a14;
+    --danger: #ff7a6e; --danger-soft: #2f1512; --danger-line: #57241f;
+    --info: #7aa7ff;   --info-soft: #121d33;   --info-line: #213a66;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --surface: #15181c;
+  --surface-2: #1c2025;
+  --line: #262a31;
+  --line-strong: #353a42;
+  --field-line: #6b727d;
+  --fg: #eef0f2;
+  --fg-2: #c5c9cf;
+  --muted: #9097a1;
+  --faint: #858b95;
+  --ink: #0a0b0e;
+  --primary: #c8f23d;
+  --primary-fg: #141a00;
+  --ok: #4ccf7f;     --ok-soft: #102a1a;     --ok-line: #1d4a2e;
+  --warn: #f2b54a;   --warn-soft: #2d2210;   --warn-line: #4f3a14;
+  --danger: #ff7a6e; --danger-soft: #2f1512; --danger-line: #57241f;
+  --info: #7aa7ff;   --info-soft: #121d33;   --info-line: #213a66;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .3);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100dvh;
+  background: var(--bg); color: var(--fg);
+  font: 15px/1.5 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { margin: 0; letter-spacing: -.02em; line-height: 1.2; }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+/* Los controles no heredan la letra por omisión y caían en Arial (UI2-05). */
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+code, .mono { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: none; box-shadow: var(--focus) !important; border-radius: 8px; }
+
+/* ── Marco ────────────────────────────────────────────────────────────────── */
+
+.app { max-width: 480px; margin: 0 auto; min-height: 100dvh; padding: 0 16px calc(96px + var(--safe-bottom)); }
+.app-plain { padding-bottom: 112px; }
+.top { display: flex; align-items: center; gap: 12px; padding: calc(18px + env(safe-area-inset-top)) 0 14px; }
+.top > .brand { flex: 1; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--volt); color: var(--volt-ink); display: grid; place-items: center; flex-shrink: 0; }
+.brand-name { font-weight: 700; font-size: var(--t-card); letter-spacing: -.02em; }
+.brand-sub { font-size: var(--t-xs); color: var(--muted); }
+/* El botón de ícono vive en compartido.css; en el encabezado lleva borde. */
+.top .icon-btn { background: var(--surface); border-color: var(--line); }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  padding: 8px 12px calc(8px + var(--safe-bottom));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-top: 1px solid var(--line);
+}
+.tabbar-inner { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.tab {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 0 5px; border-radius: 12px; color: var(--muted);
+  font-size: var(--t-micro); font-weight: 600; position: relative;
+}
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--fg); }
+.tab[aria-current="page"] .tab-icon { background: var(--volt); color: var(--volt-ink); }
+.tab-icon { width: 52px; height: 30px; border-radius: 999px; display: grid; place-items: center; transition: background .15s; }
+.tab-dot { position: absolute; top: 5px; right: calc(50% - 22px); width: 9px; height: 9px; border-radius: 50%; background: var(--danger); border: 2px solid var(--surface); }
+
+/* ── Tipografía de página ─────────────────────────────────────────────────── */
+
+.hello { font-size: var(--t-sm); color: var(--muted); font-weight: 500; }
+.title { font-size: var(--t-xl); font-weight: 700; letter-spacing: -.03em; }
+.section { margin-top: 26px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.section-title { margin: 0; } /* el aspecto es el rol "eyebrow" de compartido.css */
+.link { font-size: var(--t-sm); font-weight: 600; color: var(--fg-2); display: inline-flex; align-items: center; gap: 4px; }
+.muted { color: var(--muted); }
+.small { font-size: var(--t-sm); }
+.tiny { font-size: var(--t-xs); }
+.strong { font-weight: 600; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 12px; }
+.between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* ── Tarjetas ─────────────────────────────────────────────────────────────── */
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card-pad { padding: 18px; }
+.card + .card { margin-top: 12px; }
+
+/* Tarjeta de membresía: la pieza de identidad del portal. */
+.member-card {
+  position: relative; overflow: hidden; border-radius: 22px; padding: 22px;
+  background: var(--ink); color: var(--on-ink); min-height: 196px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 14px 40px rgba(10, 12, 15, .28);
+}
+.member-card::before {
+  content: ""; position: absolute; right: -60px; top: -70px; width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--volt) 55%, transparent), transparent 68%);
+}
+.member-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 28px 28px; mask-image: linear-gradient(200deg, #000, transparent 65%);
+}
+.member-card > * { position: relative; z-index: 1; }
+.mc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.mc-gym { font-size: var(--t-xs); color: var(--on-ink-muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.mc-plan { font-size: var(--t-h3); font-weight: 700; letter-spacing: -.02em; margin-top: 4px; }
+.mc-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: var(--t-xs); color: var(--on-ink-muted); }
+.mc-meta strong { color: var(--on-ink); font-weight: 600; }
+/* ¿Puedo entrar hoy? Lo primero y lo más grande de la tarjeta (UX5-P-01). */
+.member-card { justify-content: flex-start; gap: 6px; }
+.member-card[data-estado="no"]::before { background: radial-gradient(circle, rgba(255, 138, 128, .38), transparent 68%); }
+.mc-status { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: var(--t-h1-alt); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
+.mc-icon { width: 24px; height: 24px; flex: none; }
+.mc-icon.ok { color: var(--volt); }
+.mc-icon.warn { color: #ffc35a; }
+.mc-icon.danger { color: #ff8a80; }
+.mc-icon.info { color: #9cc8ff; }
+.mc-detalle { font-size: var(--t-base); color: var(--on-ink); opacity: .9; margin: 0; }
+.member-card .mc-meta { margin-top: auto; padding-top: 14px; }
+.btn-volt { background: var(--volt); color: var(--volt-ink); border-color: transparent; align-self: flex-start; }
+
+.member-card .badge { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.14); color: var(--on-ink); }
+.member-card .badge-ok { color: var(--volt); }
+.member-card .badge-warn { color: #ffc35a; }
+.member-card .badge-danger { color: #ff8a80; }
+
+/* ── Botones ──────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px; border-radius: 14px; border: 1px solid transparent;
+  font: 700 15.5px var(--font-sans); cursor: pointer; white-space: nowrap;
+  transition: transform .06s, background .12s;
+}
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn:disabled { cursor: not-allowed; }
+/* Deshabilitado sin transparencia: el lima a medias parecía un botón roto
+   (UI-11). Gris y legible dice "todavía no", no "algo falló". Mientras
+   envía (aria-busy) conserva su color: está trabajando, no bloqueado. */
+.btn:disabled:not([aria-busy="true"]) { background: var(--surface-2); color: var(--muted); border-color: var(--line); box-shadow: none; }
+.btn svg { width: 18px; height: 18px; }
+.btn-primary { background: var(--primary); color: var(--primary-fg); }
+.btn-volt { background: var(--volt); color: var(--volt-ink); }
+.btn-secondary { background: var(--surface); color: var(--fg); border-color: var(--line-strong); }
+.btn-danger { background: var(--surface); color: var(--danger); border-color: var(--danger-line); }
+.btn-sm { min-height: 44px; padding: 0 14px; font-size: var(--t-base); border-radius: 12px; }
+.btn-block { width: 100%; }
+a.btn { text-decoration: none; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Avisos ───────────────────────────────────────────────────────────────── */
+
+
+/* ── Filas ────────────────────────────────────────────────────────────────── */
+
+.list { list-style: none; margin: 0; padding: 0; }
+.item { display: flex; align-items: center; gap: 12px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+.item:last-child { border-bottom: 0; }
+.item-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; background: var(--surface-2); color: var(--fg-2); }
+.item-icon svg { width: 19px; height: 19px; }
+.item-body { flex: 1; min-width: 0; }
+.item-title { font-weight: 600; font-size: var(--t-card); }
+.item-sub { font-size: var(--t-sm); color: var(--muted); }
+.amount { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── Chips de día ─────────────────────────────────────────────────────────── */
+
+.days { display: flex; gap: 8px; overflow-x: auto; padding: 2px 16px 6px; margin: 0 -16px; scrollbar-width: none; }
+.days::-webkit-scrollbar { display: none; }
+.day {
+  flex-shrink: 0; width: 58px; padding: 10px 0; border-radius: 16px; text-align: center; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); color: var(--fg-2); font: inherit;
+}
+.day-name { font-size: var(--t-micro); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.day-num { font-size: var(--t-lg); font-weight: 700; margin-top: 2px; }
+.day[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.day[aria-pressed="true"] .day-name { color: var(--volt); }
+/* En oscuro la tinta ES el fondo: el día elegido y las tarjetas de tinta se
+   distinguen con el acento y un borde, o desaparecen. */
+/* Igual con el oscuro del sistema y con el que se elige en el menú (UX5-UI-05). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .day[aria-pressed="true"] { background: var(--volt); border-color: var(--volt); color: var(--volt-ink); }
+  :root:not([data-theme="light"]) .day[aria-pressed="true"] .day-name { color: var(--volt-ink); }
+  :root:not([data-theme="light"]) .day[aria-pressed="true"] .day-dot { background: var(--volt-ink); }
+  :root:not([data-theme="light"]) .member-card, :root:not([data-theme="light"]) .hero { border: 1px solid var(--line-strong); }
+  :root:not([data-theme="light"]) .hero { border-top: 0; }
+}
+:root[data-theme="dark"] .day[aria-pressed="true"] { background: var(--volt); border-color: var(--volt); color: var(--volt-ink); }
+:root[data-theme="dark"] .day[aria-pressed="true"] .day-name { color: var(--volt-ink); }
+:root[data-theme="dark"] .day[aria-pressed="true"] .day-dot { background: var(--volt-ink); }
+:root[data-theme="dark"] .member-card, :root[data-theme="dark"] .hero { border: 1px solid var(--line-strong); }
+:root[data-theme="dark"] .hero { border-top: 0; }
+.day-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--volt-strong); margin: 4px auto 0; }
+
+/* ── Clase ────────────────────────────────────────────────────────────────── */
+
+.class-card { display: flex; gap: 14px; padding: 16px; }
+.class-time { width: 58px; flex-shrink: 0; }
+.class-hour { font-size: var(--t-dialog); font-weight: 700; letter-spacing: -.02em; }
+.class-dur { font-size: var(--t-xs); color: var(--muted); }
+.class-body { flex: 1; min-width: 0; }
+.class-name { font-size: var(--t-md); font-weight: 700; }
+/* Mis clases (2026-10-09): lo que ya tiene apartado, con quién y si está pagado. */
+.mi-clase { display: flex; gap: 12px; padding: 14px 16px; align-items: flex-start; }
+.mi-clase-icono { flex: none; margin-top: 2px; color: var(--volt-strong); }
+
+/* ── Calendario de asistencia ─────────────────────────────────────────────── */
+
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-head { font-size: var(--t-micro); font-weight: 700; color: var(--muted); text-align: center; text-transform: uppercase; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 10px; display: grid; place-items: center;
+  font-size: var(--t-sm); font-weight: 600; color: var(--muted); background: var(--surface-2);
+}
+.cal-day.is-in { background: var(--volt); color: var(--volt-ink); }
+.cal-day.is-today { box-shadow: inset 0 0 0 2px var(--fg); }
+.cal-day.is-future { background: transparent; color: var(--faint); }
+.cal-day.is-empty { background: transparent; }
+
+.big-stat { font-size: var(--t-big); font-weight: 700; letter-spacing: -.04em; line-height: 1; }
+
+/* ── Formularios ──────────────────────────────────────────────────────────── */
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.label { font-size: var(--t-sm); font-weight: 600; color: var(--fg-2); }
+.hint { font-size: var(--t-xs); color: var(--muted); }
+.input, .textarea {
+  width: 100%; min-height: 50px; padding: 0 14px; border-radius: 14px;
+  border: 1px solid var(--field-line); background: var(--surface); color: var(--fg);
+  font: 16px var(--font-sans);
+}
+.textarea { padding: 12px 14px; min-height: 90px; resize: vertical; line-height: 1.5; }
+.input:focus, .textarea:focus { outline: none; border-color: var(--fg-2); box-shadow: var(--ring); }
+.check { display: flex; gap: 12px; align-items: flex-start; font-size: var(--t-card); cursor: pointer; }
+.check { min-height: 44px; align-items: center; }
+.check input { width: 22px; height: 22px; margin: 0; accent-color: var(--fg); flex-shrink: 0; }
+/* El texto legal completo a la vista (UX 2026-10-08): antes se cortaba a media frase sin aviso. */
+.doc {
+  max-height: 340px; overflow-y: auto; padding: 14px; margin: 10px 0 12px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  background: var(--surface-2); border-radius: 12px; font-size: var(--t-sm); line-height: 1.6;
+  color: var(--fg-2); white-space: pre-wrap;
+}
+.code-input {
+  width: 100%; min-height: 64px; text-align: center; font: 700 26px var(--font-mono);
+  letter-spacing: .14em; text-transform: uppercase; border-radius: 16px;
+  border: 1.5px solid var(--field-line); background: var(--surface); color: var(--fg);
+}
+.code-input:focus { outline: none; border-color: var(--fg); box-shadow: var(--ring); }
+.sticky-foot {
+  position: sticky; bottom: 0; padding: 14px 0 calc(14px + var(--safe-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+
+/* ── Hero (activar, alta) ─────────────────────────────────────────────────── */
+
+.hero {
+  margin: 0 -16px; padding: 28px 22px 34px; position: relative; overflow: hidden;
+  background: var(--ink); color: var(--on-ink); border-radius: 0 0 28px 28px;
+}
+.hero::before {
+  content: ""; position: absolute; right: -80px; top: -90px; width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--volt) 45%, transparent), transparent 68%);
+}
+.hero > * { position: relative; }
+.hero .brand-sub { color: var(--on-ink-muted); }
+.hero-title { font-size: var(--t-title); font-weight: 700; letter-spacing: -.03em; margin-top: 28px; line-height: 1.1; }
+.hero-title em { font-style: normal; color: var(--volt); }
+.hero-text { color: #c3c8d0; margin-top: 10px; font-size: var(--t-card); }
+.steps-list { counter-reset: paso; display: flex; flex-direction: column; gap: 14px; }
+.steps-list li { list-style: none; display: flex; gap: 12px; align-items: flex-start; font-size: var(--t-base); }
+.steps-list li::before {
+  counter-increment: paso; content: counter(paso);
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--fg); font-weight: 700; font-size: var(--t-sm);
+}
+
+/* ── Vacíos y carga ───────────────────────────────────────────────────────── */
+
+
+.toast {
+  position: fixed; left: 16px; right: 16px; bottom: calc(86px + var(--safe-bottom)); z-index: 40;
+  max-width: 448px; margin: 0 auto; display: flex; gap: 10px; align-items: center;
+  padding: 14px 16px; border-radius: 16px; background: var(--toast-bg); color: var(--toast-fg); border: 1px solid var(--toast-line); font-size: var(--t-base);
+  box-shadow: 0 12px 30px rgba(0,0,0,.3); animation: rise .2s ease-out;
+}
+.toast svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--volt); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── Rutina ──────────────────────────────────────────────────────────────── */
+.rt-titulo { font-size: var(--t-h2); font-weight: 800; letter-spacing: -0.02em; margin: 10px 0 2px; }
+.rt-nota { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.rt-nota svg { flex: none; margin-top: 2px; color: var(--muted); }
+.rt-dias { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 2px; scrollbar-width: none; }
+.rt-dia {
+  flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 8px 14px;
+  border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: inherit; text-align: left;
+}
+.rt-dia[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.rt-dia-num { font-size: var(--t-micro); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+.rt-dia-nombre { font-weight: 700; font-size: var(--t-card); white-space: nowrap; }
+.rt-ejercicios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.rt-ej-nombre { font-size: var(--t-ui-lg); font-weight: 700; margin-top: 2px; }
+.rt-series { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.rt-series strong { font-size: var(--t-h2); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.rt-descanso { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); font-size: var(--t-sm); color: var(--muted); }
+.rt-ej-nota { margin-top: 8px; padding-left: 10px; border-left: 3px solid var(--volt); }
+
+/* ── Hoja inferior ─────────────────────────────────────────────────────── */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(0, 0, 0, .45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: 100%; max-width: 480px; background: var(--surface); color: var(--fg);
+  border-radius: 22px 22px 0 0; padding: 10px 20px calc(24px + var(--safe-bottom));
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .18); outline: none;
+  animation: sheet-in .18s ease-out;
+  /* Nunca más alta que la pantalla (UX 2026-10-08): el título y Cerrar quedan siempre a la vista. */
+  max-height: calc(100dvh - 24px); display: flex; flex-direction: column;
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.sheet-head .sheet-title { margin: 0 0 14px; }
+/* La hoja es el diálogo espejo del panel (components/dialogo.tsx): un título largo se parte en
+   renglones sin empujar la X, y si trae pie, queda abajo y a la vista (26-14). */
+.sheet-head > div:first-child { flex: 1; min-width: 0; }
+.sheet-title { overflow-wrap: break-word; }
+.sheet-foot { flex-shrink: 0; display: flex; flex-direction: column-reverse; gap: 8px; padding-top: 14px; }
+/* El error de la acción de la hoja, junto a sus botones (bloque 1.2). */
+.sheet-aviso { flex-shrink: 0; padding-top: 12px; }
+.sheet-cerrar { width: 44px; height: 44px; margin: -6px -8px 8px 0; font-size: var(--t-md); }
+.sheet-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.sheet-grip { width: 40px; height: 4px; border-radius: 999px; background: var(--line-strong); margin: 0 auto 14px; }
+.sheet-title { font-size: var(--t-dialog); font-weight: 700; margin: 0 0 14px; }
+@keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
+/* Apariencia (UI2-10): tres opciones en una fila, del tamaño de un pulgar. */
+.tema-grupo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; }
+.tema-opcion { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: var(--fg-2); font-weight: 600; cursor: pointer; }
+.tema-opcion[aria-checked="true"] { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+
+/* Teléfono: 44 px en lo que se toca (UX5-UI-06). */
+.link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
+.lucide { stroke-width: 1.75; }
+.brand-mark .lucide { stroke-width: 2.4; }
+
+/* Próximo pago dentro de la tarjeta del socio (UX5-P-05). */
+.mc-proximo { font-size: var(--t-base); color: var(--on-ink); margin: 10px 0 0; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.14); }
+.mc-proximo strong { color: var(--volt); }
+
+/* Sucursal en Clases: una pastilla por sede; la elegida, en tinta como el día. */
+.chip {
+  min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--fg); font: inherit; font-size: var(--t-base); font-weight: 600; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--selected-bg); border-color: var(--selected-bg); color: var(--selected-fg); }
+.chip { min-height: 44px; }
+
+/* Oscuro (UX 2026-10-08): lo elegido y el toast no pueden ser tinta sobre fondo tinta (1.01:1). */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --selected-bg: var(--volt); --selected-fg: var(--volt-ink); --toast-bg: var(--surface); --toast-fg: var(--fg); --toast-line: var(--line-strong); } }
+:root[data-theme="dark"] { --selected-bg: var(--volt); --selected-fg: var(--volt-ink); --toast-bg: var(--surface); --toast-fg: var(--fg); --toast-line: var(--line-strong); }
+
+/* Selector con el mismo cuerpo que los campos. */
+.select { width: 100%; min-height: 50px; padding: 0 40px 0 14px; border: 1px solid var(--field-line, var(--line-strong)); border-radius: 14px; background: var(--surface); color: var(--fg); font: 16px var(--font-sans); appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.select:focus { outline: none; box-shadow: var(--ring); }
+
+/* Medidas del portal para los componentes compartidos: más grandes, es para el pulgar. */
+:root:root { --c-eyebrow: var(--t-sm); --c-eyebrow-weight: 700; --c-badge-h: 26px; --c-badge-weight: 700; --c-radius: 16px; --c-tile: 40px; --c-tile-r: 12px; --c-iconbtn: 44px; --c-empty-pad: 32px 20px; --c-skel-r: 14px; }
+/* EstadoCarga con `relleno` (lib/carga.tsx): el error o el esqueleto con el margen de una tarjeta. */
+.estado-carga { padding: 18px; }
+
+/* ── Tus permisos y tus solicitudes (1.10) ─────────────────────────────────── */
+.item-title-sm { font-size: 14px; }
+.item.wrap { flex-wrap: wrap; }
+.confirmar-retiro { flex-basis: 100%; }
+
+/* ══ Fase 2 · bloque 2.8 · Portal útil sin procesador ═══════════════════════
+   Todo con los tokens de tokens.css: ningún color nuevo. */
+
+.pagina-titulo { margin: 4px 0 16px; }
+.text-ok { color: var(--ok); }
+.item-title-base { font-size: var(--t-base); }
+.amount-ok { color: var(--ok); }
+.amount-danger { color: var(--danger); }
+.amount-anulado { color: var(--muted); text-decoration: line-through; }
+
+/* Barra de pestañas: tantas columnas como pestañas haya (de 3 a 5), sin que la etiqueta toque el borde a 360 px. */
+.tabbar-inner { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.tab { white-space: nowrap; min-width: 0; }
+.tab-icon { width: min(52px, 100%); }
+
+/* Un renglón que es un enlace entero (el pago que abre su comprobante) y la tarjeta que es un solo renglón. */
+.item-link { border-bottom: 1px solid var(--line) !important; }
+li:last-child > .item-link { border-bottom: 0 !important; }
+.item-suelto { border-bottom: 0; }
+
+/* Inicio: una columna en el teléfono; desde tableta, dos (la tarjeta y cómo entras | clase, mes y movimiento). */
+.inicio { display: grid; gap: 0; }
+.inicio-col { min-width: 0; }
+@media (min-width: 768px) {
+  .app[data-pantalla="inicio"] { max-width: 920px; }
+  .inicio { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  .inicio-col + .inicio-col > .section:first-child { margin-top: 0; }
+}
+/* Sin señal: de cuándo son los datos de la tarjeta (25-18). */
+.mc-copia { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: var(--t-sm); color: var(--on-ink); opacity: .9; }
+.mc-copia svg { width: 15px; height: 15px; flex: none; }
+
+/* Pagos sin procesador: dónde se paga y con qué número lo buscan. */
+.card-debe { border-color: var(--danger-line); }
+.socio-numero { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); }
+.socio-numero-codigo { font-size: var(--t-lg); font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+.tarjeta-guardada { min-height: 170px; margin-bottom: 12px; }
+.tarjeta-pie { align-items: flex-end; }
+.tarjeta-numero { font-size: var(--t-ui-lg); letter-spacing: .12em; }
+.btn-sobre-tinta { background: color-mix(in srgb, var(--on-ink) 10%, transparent); color: var(--on-ink); border-color: color-mix(in srgb, var(--on-ink) 18%, transparent); }
+
+/* Campana y hoja de avisos: lo que hay que resolver, arriba y marcado (25-11). */
+.campana { position: relative; }
+.campana-cuenta {
+  position: absolute; top: 6px; right: 6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+  display: grid; place-items: center; background: var(--danger); color: var(--surface); font-size: var(--t-nano); font-weight: 700;
+}
+.avisos .aviso { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.avisos .aviso:last-child { border-bottom: 0; }
+.avisos-resolver .aviso { padding: 12px; margin-bottom: 8px; border: 1px solid var(--danger-line); border-radius: 14px; background: var(--danger-soft); }
+.avisos-resolver .aviso:last-child { border-bottom: 1px solid var(--danger-line); margin-bottom: 0; }
+.aviso-titulo { font-weight: 600; font-size: var(--t-base); }
+.aviso-pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+
+/* Cuenta: secciones con su rótulo y filas de dato. */
+.datos { margin: 0; }
+.dato { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+.dato:last-child { border-bottom: 0; }
+.dato dt { font-size: var(--t-sm); color: var(--muted); flex: none; }
+.dato dd { margin: 0; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.cuenta-sub { margin: 18px 0 8px; }
+
+/* Asistencia: las dos cifras con la misma medida y su pie en un renglón a 360 px. */
+.dos-cifras { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.dos-cifras .card + .card { margin-top: 0; }
+.cifra-pie { white-space: nowrap; }
+.cal-muestra { width: 14px; height: 14px; border-radius: 4px; aspect-ratio: auto; }
+
+/* Comprobante de pago: en pantalla, una tarjeta; al imprimir o guardar como PDF, solo él. */
+.recibo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 18px; font-size: var(--t-base); }
+.recibo header { text-align: center; padding-bottom: 12px; border-bottom: 1px dashed var(--line-strong); margin-bottom: 12px; }
+.recibo-org { font-size: var(--t-md); font-weight: 700; }
+.recibo-folio { font-weight: 700; margin-top: 4px; }
+.recibo-aviso { text-align: center; font-weight: 700; margin-bottom: 8px; }
+.recibo-socio { font-weight: 600; margin-bottom: 10px; }
+.recibo-socio span { font-weight: 400; color: var(--muted); }
+.recibo table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.recibo td { padding: 4px 0; vertical-align: top; }
+.recibo td:last-child { text-align: right; white-space: nowrap; padding-left: 10px; }
+.recibo tr.total td { border-top: 1px solid var(--fg); font-weight: 700; font-size: var(--t-card); padding-top: 8px; }
+.recibo footer { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--line-strong); font-size: var(--t-micro); color: var(--muted); text-align: center; }
+@media print {
+  .no-print { display: none !important; }
+  body { background: var(--surface); }
+  .app { max-width: none; min-height: 0; padding: 0; }
+  .recibo { border: 0; padding: 0; max-width: 80mm; margin: 0 auto; }
+}
+
+/* ── Captación (2.4): el formulario del alta (`app/alta`) ───────────────────── */
+.form-alta-inicio { margin-top: 24px; }
+/* El error va en su campo, no en un aviso al final (9-10). */
+.form-alta .input[aria-invalid="true"], .form-alta .textarea[aria-invalid="true"] { border-color: var(--danger); }
+.campo-error { font-size: var(--t-xs); color: var(--danger); font-weight: 500; }
+.pregunta-si-no { border: 0; padding: 0; min-width: 0; }
+.pregunta-si-no legend { padding: 0; margin-bottom: 6px; }
+/* El botón de enviar antes de pasar por «Contacto»: en su lugar, sin pegarse a la pantalla. */
+.pie-alta { padding: 14px 0; }
+/* El folio que se dicta en recepción: grande y espaciado, para leerlo de una mirada. */
+.folio-alta { text-align: center; }
+.folio-alta-codigo { font: 700 34px var(--font-mono); letter-spacing: .18em; margin: 6px 0 8px; }
+
+/* ── Coach (2.6): «Hoy toca» y «Marcar día hecho» en Tu rutina ── */
+.rt-hoy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 0; font-size: var(--t-sm); }
+.rt-hoy-punto { width: 8px; height: 8px; border-radius: 999px; background: var(--volt-strong); flex: none; }
+.rt-hoy[data-hecho="true"] .rt-hoy-punto { background: var(--ok); }
+.rt-semana { margin: 2px 0 0 14px; }
+.rt-nota-lineas { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rt-nota-lineas p { margin: 0; }
+.rt-dia-hecho { margin-left: 4px; vertical-align: -1px; }
+.rt-solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.rt-pie { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+.rt-hecho { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--ok-line); border-radius: 14px; background: var(--ok-soft); color: var(--ok); }
+.rt-falla { margin: 0; color: var(--danger); text-align: center; }
