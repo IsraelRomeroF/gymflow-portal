@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Bell, BellRing, CalendarCheck, CircleAlert, FileText, Smartphone, Wallet } from 'lucide-react';
+import { Bell, BellRing, CalendarCheck, CalendarX2, CircleAlert, FileText, Smartphone, Wallet } from 'lucide-react';
 import type { PortalNotices } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
 import { concepto, dia, hace, hora } from '@/lib/format';
@@ -16,6 +16,8 @@ type Renglon = { aviso: Aviso; ids: string[]; veces: Aviso[] };
 function accion(kind: string, enLinea: boolean): { href: string; label: string } | null {
   if (kind === 'PAYMENT_DUE_SOON' || kind === 'PAYMENT_OVERDUE' || kind === 'MEMBERSHIP_SUSPENDED') return enLinea ? { href: '/pagos', label: 'Pagar' } : { href: '/pagos', label: 'Ver mis pagos' };
   if (kind === 'CLASS_TOMORROW') return { href: '/clases', label: 'Ver clase' };
+  // Se liberó su lugar apartado sin pagar (D-16, 3.16): lo lleva al horario, por si quiere otra.
+  if (kind === 'CLASS_HOLD_RELEASED') return { href: '/clases', label: 'Ver clases' };
   return null;
 }
 
@@ -24,6 +26,7 @@ function icono(kind: string): { tono: Tono; pieza: React.ReactNode } {
   if (kind === 'PAYMENT_DUE_SOON' || kind === 'PAYMENT_OVERDUE') return { tono: 'warn', pieza: <Wallet /> };
   if (kind === 'MEMBERSHIP_SUSPENDED') return { tono: 'danger', pieza: <CircleAlert /> };
   if (kind === 'CLASS_TOMORROW') return { tono: 'info', pieza: <CalendarCheck /> };
+  if (kind === 'CLASS_HOLD_RELEASED') return { tono: 'warn', pieza: <CalendarX2 /> };
   if (kind === 'NEW_DEVICE') return { tono: 'neutral', pieza: <Smartphone /> };
   return { tono: 'neutral', pieza: <FileText /> };
 }

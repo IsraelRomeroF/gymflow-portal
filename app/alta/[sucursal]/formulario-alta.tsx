@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CircleCheck, ConciergeBell, FileSignature } from 'lucide-react';
+import { CircleCheck, ConciergeBell, FileSignature, UsersRound } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button, Callout, Skeleton } from '@/components/ui';
 import { IconTile, Marca } from '@/components/compartido';
@@ -219,7 +219,8 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
         </div>
         <div className="card card-pad mt-12">
           <div className="row items-start">
-            <IconTile tone="ok"><CircleCheck /></IconTile>
+            {/* 3.14: «falta» no lleva la palomita verde de lo que ya quedó. */}
+            {esperaTutor ? <IconTile tone="warn"><UsersRound /></IconTile> : <IconTile tone="ok"><CircleCheck /></IconTile>}
             <div>
               <p className="item-title">{esperaTutor ? 'Falta que venga tu papá, mamá o tutor' : 'Solo falta pasar a recepción'}</p>
               <p className="item-sub" data-testid={esperaTutor ? 'falta-tu-tutor' : undefined}>{esperaTutor

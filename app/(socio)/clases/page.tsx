@@ -8,6 +8,7 @@ import { capital, dia, hora } from '@/lib/format';
 import { useSocio } from '@/components/socio';
 import { Badge, Button, Callout, Empty, ErrorCarga, Sheet, Skeleton } from '@/components/ui';
 import { useCarga } from '@/lib/carga';
+import { guardadoHasta, soloPagando } from '@/lib/clase-suelta';
 
 type Clase = {
   id: string;
@@ -27,6 +28,10 @@ type Clase = {
   requiresPayment: boolean;
   priceLabel: string | null;
   warnings: string[];
+  /** D-16: por qué desde el teléfono no se aparta (aquí todavía no se paga). Lo dice la API, como la cotización del mostrador. */
+  payNow?: 'OWES_MEMBERSHIP' | 'HOLD_CLOSED' | null;
+  /** D-16: hasta cuándo se le guardaría el lugar sin pagar. */
+  holdUntil?: string | null;
 };
 
 /** Por qué no se puede reservar, dicho como se lo diría una persona. */
@@ -51,28 +56,6 @@ const claveDia = (iso: string) => new Date(iso).toLocaleDateString('en-CA');
  */
 const CANCELAR_SIN_FALTA_MIN = 120;
 
-/**
- * Una clase suelta se aparta sin pagar hasta esta cantidad de minutos antes:
- * el mismo valor que `MINUTOS_DE_APARTADO` del núcleo, que es el que aplica la
- * API. Si un día cambia allá, cambia aquí (D-16).
- */
-const APARTAR_SIN_PAGAR_MIN = 60;
-
-/**
- * D-16: una clase suelta que desde el teléfono NO se puede apartar, dicho
- * ANTES de tocar (aquí todavía no se paga): quien debe su mensualidad, o la
- * clase que empieza en menos de una hora. `GET /portal/classes` aún no lo
- * dice (sigue respondiendo `canBook`), así que se deduce de lo que ya viaja:
- * la hora de la clase y el estado de su membresía. Si la API decide otra
- * cosa, su respuesta al reservar sigue mandando (el aviso de arriba).
- */
-function soloPagando(c: { startsAt: string; requiresPayment: boolean }, debeCuota: boolean, ahora = Date.now()): string | null {
-  if (!c.requiresPayment) return null;
-  if (debeCuota) return 'Debes tu mensualidad: ponte al corriente para apartarla, o págala en recepción.';
-  if (new Date(c.startsAt).getTime() - ahora <= APARTAR_SIN_PAGAR_MIN * 60000) return 'Falta menos de una hora: se paga en recepción al llegar.';
-  return null;
-}
-
 /** Lo que pasa si cancela ahora, dicho ANTES de cancelar (11-10). */
 function consecuencia(c: { startsAt: string }, pago: Inscripcion['payment'] | null, ahora = Date.now()): { aTiempo: boolean; texto: string } {
   const minutos = Math.max(0, Math.round((new Date(c.startsAt).getTime() - ahora) / 60000));
@@ -94,7 +77,11 @@ type Inscripcion = {
   id: string; classScheduleId: string; className: string | null; coachName: string | null;
   branchName: string | null; room: string | null; startsAt: string; endsAt: string;
   status: string; payment: 'INCLUDED' | 'PAID' | 'PENDING';
+  /** D-16: hasta cuándo se le guarda el lugar si sigue sin pagar. */
+  holdUntil?: string | null;
 };
+/** Las palabras de `guardadoHasta`: la hora y el día como los escribe el portal. */
+const PALABRAS = { hora: (iso: string) => hora(iso), dia: (iso: string) => dia(iso, { day: 'numeric', month: 'long' }) };
 const PAGO: Record<Inscripcion['payment'], { label: string; tone: 'ok' | 'warn' | 'volt' }> = {
   INCLUDED: { label: 'Incluida en tu plan', tone: 'ok' },
   PAID: { label: 'Clase suelta pagada', tone: 'ok' },
@@ -144,8 +131,6 @@ export default function ClasesPage() {
   // Sin membresía al corriente, "Sin plan vigente" en cada clase no le dice
   // qué hacer: se le dice una vez arriba y se le lleva a pagar (UX4-23).
   const debeMembresia = me.membershipStatus === 'PAST_DUE' || me.membershipStatus === 'SUSPENDED' || me.membershipStatus === 'PENDING';
-  // Con una cuota vencida (en mora o suspendida) la clase suelta solo se aparta pagándola (D-16).
-  const debeCuota = me.membershipStatus === 'PAST_DUE' || me.membershipStatus === 'SUSPENDED';
   const porAdeudo = debeMembresia && (clases ?? []).some((c) => !c.booked && !c.canBook && (c.reason === 'NO_MEMBERSHIP' || c.reason === 'MEMBERSHIP_NOT_VALID_AT_CLASS_TIME'));
   const seleccionado = diaSel ?? dias[0]?.[0] ?? null;
   const delDia = dias.find(([k]) => k === seleccionado)?.[1] ?? [];
@@ -154,15 +139,17 @@ export default function ClasesPage() {
     setOcupado(clase.id);
     setAviso(null);
     try {
-      const r = await api<{ warnings: string[] }>(`/portal/classes/${clase.id}/book`, { method: 'POST', body: '{}' });
+      const r = await api<{ warnings: string[]; holdUntil?: string | null }>(`/portal/classes/${clase.id}/book`, { method: 'POST', body: '{}' });
       // El aviso de adeudo va DESPUÉS de reservar, no en lugar de reservar:
       // enterarse aquí es lo que le da tiempo de pagar antes de la clase.
       if (r.warnings.includes('WILL_BE_DENIED_AT_DOOR')) {
         setAviso('Tu lugar está apartado, pero con adeudo no podrás entrar. Ponte al corriente en Pagos antes de la clase.');
       } else {
         // Una clase con costo NO se cobra aquí: queda el cargo para pagar en recepción (UX5-P-02).
+        // D-16: y hasta cuándo se le guarda sin pagar (lo dice la respuesta de la API).
+        const guardado = guardadoHasta({ holdUntil: r.holdUntil, startsAt: clase.startsAt }, PALABRAS);
         toast(clase.requiresPayment && clase.priceLabel
-          ? `Listo, tienes lugar en ${clase.className ?? 'la clase'}. Paga ${clase.priceLabel} en recepción antes de la clase.`
+          ? `Listo, tienes lugar en ${clase.className ?? 'la clase'}. Paga ${clase.priceLabel} en recepción antes de la clase.${guardado ? ` ${guardado}` : ''}`
           : `Listo, tienes lugar en ${clase.className ?? 'la clase'}.`);
       }
       await cargar();
@@ -225,6 +212,8 @@ export default function ClasesPage() {
           <div className="stack-sm">
             {mias.map((x) => {
               const pago = PAGO[x.payment];
+              // D-16: apartada sin pagar, hasta cuándo se le guarda el lugar.
+              const guardado = x.payment === 'PENDING' ? guardadoHasta(x, PALABRAS) : null;
               return (
                 <div key={x.id} className="card mi-clase">
                   <CalendarCheck size={20} className="mi-clase-icono" aria-hidden />
@@ -234,6 +223,7 @@ export default function ClasesPage() {
                       <Badge tone={pago.tone}>{pago.label}</Badge>
                     </div>
                     <p className="small mt-4">{capital(dia(x.startsAt, { weekday: 'long', day: 'numeric', month: 'long' }))} · {hora(x.startsAt)}</p>
+                    {guardado && <p className="small text-warn mt-4" data-testid="apartado-hasta">{guardado}</p>}
                     <div className="row tiny muted gap-12 mt-4 flex-wrap">
                       <span className="row gap-4"><UserRound size={13} />{x.coachName ? `Con ${x.coachName}` : 'Coach por confirmar'}</span>
                       <span className="row gap-4"><MapPin size={13} />{[x.branchName, x.room].filter(Boolean).join(' · ') || 'Sucursal'}</span>
@@ -287,7 +277,7 @@ export default function ClasesPage() {
         {delDia.map((c) => {
           const minutos = Math.round((new Date(c.endsAt).getTime() - new Date(c.startsAt).getTime()) / 60000);
           const pocos = c.spotsLeft > 0 && c.spotsLeft <= 3;
-          const pagando = c.canBook ? soloPagando(c, debeCuota) : null;
+          const pagando = c.canBook ? soloPagando(c) : null;
           return (
             <div key={c.id} className="card class-card" style={c.booked ? { borderColor: 'var(--volt-strong)', boxShadow: '0 0 0 1px var(--volt-strong)' } : undefined}>
               <div className="class-time">
