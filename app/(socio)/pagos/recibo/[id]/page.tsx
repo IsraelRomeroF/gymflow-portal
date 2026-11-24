@@ -6,7 +6,7 @@ import { ChevronLeft, Download } from 'lucide-react';
 import type { PortalReceipt } from '@gymflow/core/contracts';
 import { METODO_DE_PAGO, etiqueta } from '@gymflow/core/vocabulario';
 import { api } from '@/lib/api';
-import { concepto, fechaHora, pesos } from '@/lib/format';
+import { concepto, fechaHora, pesos, telefono } from '@/lib/format';
 import { EstadoCarga, useCarga } from '@/lib/carga';
 import { Button, Skeleton } from '@/components/ui';
 
@@ -33,10 +33,14 @@ export default function ReciboPage({ params }: { params: Promise<{ id: string }>
         {(r) => {
           const devolucion = BigInt(r.amountCents) < 0n;
           const aFavor = BigInt(r.unappliedCents);
+          // Lo mismo que imprime el recibo del mostrador (D-27; bloque 4.11): lo que no esté registrado, no sale.
+          const contacto = [r.gym.phone ? `Tel. ${telefono(r.gym.phone)}` : null, r.gym.whatsapp ? `WhatsApp ${telefono(r.gym.whatsapp)}` : null, r.gym.rfc ? `RFC ${r.gym.rfc}` : null].filter(Boolean);
           return (
             <>
               <article className="recibo" data-testid="comprobante">
                 <header>
+                  {/* El logo viene como data: desde la API, no es una imagen del sitio. */}
+                  {r.gym.logo && <img src={r.gym.logo} alt="" className="recibo-logo" data-testid="recibo-logo" />}
                   <p className="recibo-org">{r.gymName}</p>
                   {r.branchName && <p>Sucursal {r.branchName}</p>}
                   <p>{fechaHora(r.receivedAt)}</p>
@@ -58,6 +62,11 @@ export default function ReciboPage({ params }: { params: Promise<{ id: string }>
                     {r.priceNotice.kind === 'UPCOMING'
                       ? <>A partir de tu siguiente pago, {r.priceNotice.planName ?? 'tu plan'} cuesta <strong>{pesos(r.priceNotice.toPriceCents)}</strong> (antes {pesos(r.priceNotice.fromPriceCents)}).</>
                       : <>{r.priceNotice.planName ?? 'Tu plan'} cambió de precio: de {pesos(r.priceNotice.fromPriceCents)} a <strong>{pesos(r.priceNotice.toPriceCents)}</strong> desde este pago.</>}
+                  </p>
+                )}
+                {(r.gym.receiptLegend || contacto.length > 0) && (
+                  <p className="recibo-pie" data-testid="recibo-pie">
+                    {r.gym.receiptLegend}{r.gym.receiptLegend && contacto.length > 0 ? '\n' : ''}{contacto.join(' · ')}
                   </p>
                 )}
                 <footer>Comprobante de pago. No es un comprobante fiscal (CFDI); si necesitas factura, pídela en recepción.</footer>

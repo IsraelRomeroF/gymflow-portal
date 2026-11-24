@@ -620,3 +620,7 @@ li:last-child > .item-link { border-bottom: 0 !important; }
 .dato-editable dd { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .dato-editable dd .btn { flex: none; }
 [data-error="true"] > .input { border-color: var(--danger); }
+
+/* ── Fase 4 · bloque 4.11 · El comprobante imprime el logo y la leyenda del gimnasio, como el del mostrador (D-27) ── */
+.recibo-logo { display: block; max-width: 140px; max-height: 56px; object-fit: contain; margin: 0 auto 6px; }
+.recibo-pie { text-align: center; margin-top: 12px; white-space: pre-line; font-size: var(--t-sm); }
