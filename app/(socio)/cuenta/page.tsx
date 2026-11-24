@@ -10,14 +10,16 @@ import { hastaRecordado, limpiarPortal } from '@/lib/sesion';
 import { useCarga } from '@/lib/carga';
 import { useSocio } from '@/components/socio';
 import { Permisos } from '@/components/permisos';
+import { Notificaciones } from '@/components/notificaciones';
+import { apagarEnEsteTelefono } from '@/lib/push';
 import { ElegirTema } from '@/components/tema';
 import { Button, IconTile, Section, Sheet } from '@/components/ui';
 
 /**
  * CUENTA (bloque 2.8 · 25-21). Era una hoja larga escondida detrás de un
  * ícono, que crecía hasta tener que desplazarse dentro de ella. Ahora es una
- * pantalla con cuatro secciones —tus datos, tus permisos, los teléfonos con
- * el portal abierto y la apariencia— y cada acción que no se deshace desde el
+ * pantalla con cinco secciones —tus datos, tus permisos, tus notificaciones
+ * (fase 3, bloque 3.10), los teléfonos con el portal abierto y la apariencia— y cada acción que no se deshace desde el
  * teléfono (cerrar sesión, retirar un permiso, pedir una corrección) abre su
  * propia hoja corta.
  *
@@ -38,6 +40,8 @@ export default function CuentaPage() {
 
   async function salir(todos: boolean) {
     setSaliendo(true);
+    // Este teléfono deja de recibir notificaciones (3.10); el servidor borra la suscripción al cerrar la sesión.
+    await apagarEnEsteTelefono().catch(() => null);
     // "En todos" es para el teléfono perdido (PS-02): también muere la sesión de ese aparato.
     await api(todos ? '/portal/logout-all' : '/portal/logout', { method: 'POST', body: '{}' }).catch(() => undefined);
     // Nada del socio se queda en el teléfono: la copia sin señal, el gimnasio y lo demás que guardó el portal (24-15).
@@ -71,6 +75,11 @@ export default function CuentaPage() {
       {/* Tus permisos y tus solicitudes (PS-07): ya no hace falta "avisar en recepción". */}
       <Section title="Tus permisos">
         <Permisos onAviso={toast} />
+      </Section>
+
+      {/* Notificaciones gratis, que el socio enciende y apaga (D-34). */}
+      <Section title="Notificaciones">
+        <Notificaciones onAviso={toast} />
       </Section>
 
       <Section title="Teléfonos con el portal abierto">

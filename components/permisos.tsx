@@ -5,7 +5,9 @@ import type { MemberPrivacyRequests, PortalConsents, PrivacyRequest } from '@gym
 import { TIPO_DE_CONSENTIMIENTO_SOCIO } from '@gymflow/core/vocabulario';
 import {
   CONSECUENCIA_DE_RETIRAR, ESTADO_DE_SOLICITUD_ARCO, PLAZOS_ARCO, RESULTADO_DE_SOLICITUD_ARCO, SOLICITUDES_DESDE_EL_PORTAL, TIPO_DE_SOLICITUD_ARCO_SOCIO,
+  consecuenciaDeRetirarRostro,
 } from '@gymflow/core/privacidad';
+import { useSocio } from './socio';
 import { api } from '@/lib/api';
 import { dia } from '@/lib/format';
 import { Button, Callout, ErrorCarga, Sheet } from './ui';
@@ -36,6 +38,8 @@ function estadoDe(r: PrivacyRequest): string {
  * corrección ya no es un formulario que crece dentro de la misma pantalla.
  */
 export function Permisos({ onAviso }: { onAviso: (texto: string) => void }) {
+  // La regla del rostro de su gimnasio (D-06) cambia lo que pasa al retirarlo, y al retirarlo cambia «Cómo entras».
+  const { me, reload } = useSocio();
   const [ocupado, setOcupado] = useState(false);
   const [porRetirar, setPorRetirar] = useState<Consentimiento | null>(null);
   const [fallo, setFallo] = useState<string | null>(null);
@@ -52,9 +56,9 @@ export function Permisos({ onAviso }: { onAviso: (texto: string) => void }) {
     setOcupado(true); setFallo(null);
     try {
       await api(`/portal/consents/${c.consentType}/revoke`, { method: 'POST', body: '{}' });
-      onAviso(`Listo: ya no usamos «${NOMBRE[c.consentType] ?? c.consentType}».`);
+      onAviso(c.consentType === 'BIOMETRIC' ? 'Listo: tu rostro ya no se reconoce y su plantilla se borró.' : `Listo: ya no usamos «${NOMBRE[c.consentType] ?? c.consentType}».`);
       setPorRetirar(null);
-      await cargar();
+      await Promise.all([cargar(), c.consentType === 'BIOMETRIC' ? reload() : Promise.resolve()]);
     } catch { setFallo('No se pudo retirar. Inténtalo de nuevo o avisa en recepción.'); } finally { setOcupado(false); }
   }
   async function enviarPedido() {
@@ -86,7 +90,7 @@ export function Permisos({ onAviso }: { onAviso: (texto: string) => void }) {
                       Cambió el texto{c.currentVersion ? ` (versión ${c.currentVersion})` : ''}: fírmalo de nuevo en recepción. Mientras tanto sigues entrando igual.
                     </p>
                   )}
-                  {!c.revocable && <p className="tiny muted mt-2">Se retira en recepción</p>}
+                  {!c.revocable && <p className="tiny muted mt-2">Es obligatorio: se retira dándote de baja en recepción</p>}
                 </div>
                 {c.revocable && <Button variant="secondary" size="sm" onClick={() => { setFallo(null); setPorRetirar(c); }}>Retirar</Button>}
               </li>
@@ -131,7 +135,13 @@ export function Permisos({ onAviso }: { onAviso: (texto: string) => void }) {
         {porRetirar && (
           <div data-testid="confirmar-retiro">
             <Callout tone="warn" title="Esto es lo que pasa">{CONSECUENCIA_DE_RETIRAR[porRetirar.consentType]?.socio ?? 'El gimnasio deja de usar ese permiso desde hoy.'}</Callout>
-            <p className="tiny muted mt-10">Para volver a darlo hay que firmarlo otra vez en recepción.</p>
+            {/* El rostro (D-32): además de lo que se borra, CÓMO va a entrar desde hoy, que depende de la regla de su gimnasio (D-06). */}
+            {porRetirar.consentType === 'BIOMETRIC' && (
+              <div className="mt-10" data-testid="como-entras-sin-rostro">
+                <Callout tone={me.faceRule ? 'danger' : 'info'} title="Cómo vas a entrar">{consecuenciaDeRetirarRostro(!!me.faceRule).comoEntras}</Callout>
+              </div>
+            )}
+            <p className="tiny muted mt-10">{porRetirar.consentType === 'BIOMETRIC' ? 'Para volver a entrar con tu rostro hay que registrarlo y firmarlo otra vez en recepción.' : 'Para volver a darlo hay que firmarlo otra vez en recepción.'}</p>
           </div>
         )}
       </Sheet>

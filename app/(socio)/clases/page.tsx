@@ -51,6 +51,28 @@ const claveDia = (iso: string) => new Date(iso).toLocaleDateString('en-CA');
  */
 const CANCELAR_SIN_FALTA_MIN = 120;
 
+/**
+ * Una clase suelta se aparta sin pagar hasta esta cantidad de minutos antes:
+ * el mismo valor que `MINUTOS_DE_APARTADO` del núcleo, que es el que aplica la
+ * API. Si un día cambia allá, cambia aquí (D-16).
+ */
+const APARTAR_SIN_PAGAR_MIN = 60;
+
+/**
+ * D-16: una clase suelta que desde el teléfono NO se puede apartar, dicho
+ * ANTES de tocar (aquí todavía no se paga): quien debe su mensualidad, o la
+ * clase que empieza en menos de una hora. `GET /portal/classes` aún no lo
+ * dice (sigue respondiendo `canBook`), así que se deduce de lo que ya viaja:
+ * la hora de la clase y el estado de su membresía. Si la API decide otra
+ * cosa, su respuesta al reservar sigue mandando (el aviso de arriba).
+ */
+function soloPagando(c: { startsAt: string; requiresPayment: boolean }, debeCuota: boolean, ahora = Date.now()): string | null {
+  if (!c.requiresPayment) return null;
+  if (debeCuota) return 'Debes tu mensualidad: ponte al corriente para apartarla, o págala en recepción.';
+  if (new Date(c.startsAt).getTime() - ahora <= APARTAR_SIN_PAGAR_MIN * 60000) return 'Falta menos de una hora: se paga en recepción al llegar.';
+  return null;
+}
+
 /** Lo que pasa si cancela ahora, dicho ANTES de cancelar (11-10). */
 function consecuencia(c: { startsAt: string }, pago: Inscripcion['payment'] | null, ahora = Date.now()): { aTiempo: boolean; texto: string } {
   const minutos = Math.max(0, Math.round((new Date(c.startsAt).getTime() - ahora) / 60000));
@@ -122,6 +144,8 @@ export default function ClasesPage() {
   // Sin membresía al corriente, "Sin plan vigente" en cada clase no le dice
   // qué hacer: se le dice una vez arriba y se le lleva a pagar (UX4-23).
   const debeMembresia = me.membershipStatus === 'PAST_DUE' || me.membershipStatus === 'SUSPENDED' || me.membershipStatus === 'PENDING';
+  // Con una cuota vencida (en mora o suspendida) la clase suelta solo se aparta pagándola (D-16).
+  const debeCuota = me.membershipStatus === 'PAST_DUE' || me.membershipStatus === 'SUSPENDED';
   const porAdeudo = debeMembresia && (clases ?? []).some((c) => !c.booked && !c.canBook && (c.reason === 'NO_MEMBERSHIP' || c.reason === 'MEMBERSHIP_NOT_VALID_AT_CLASS_TIME'));
   const seleccionado = diaSel ?? dias[0]?.[0] ?? null;
   const delDia = dias.find(([k]) => k === seleccionado)?.[1] ?? [];
@@ -263,6 +287,7 @@ export default function ClasesPage() {
         {delDia.map((c) => {
           const minutos = Math.round((new Date(c.endsAt).getTime() - new Date(c.startsAt).getTime()) / 60000);
           const pocos = c.spotsLeft > 0 && c.spotsLeft <= 3;
+          const pagando = c.canBook ? soloPagando(c, debeCuota) : null;
           return (
             <div key={c.id} className="card class-card" style={c.booked ? { borderColor: 'var(--volt-strong)', boxShadow: '0 0 0 1px var(--volt-strong)' } : undefined}>
               <div className="class-time">
@@ -286,6 +311,8 @@ export default function ClasesPage() {
                 <div className="mt-12">
                   {c.booked ? (
                     <Button variant="danger" size="sm" loading={ocupado === c.id} disabled={!!ocupado} onClick={() => setConfirmar(c)}>Cancelar reserva</Button>
+                  ) : pagando ? (
+                    <span className="small muted" data-testid="solo-pagando">{pagando}</span>
                   ) : c.canBook ? (
                     <Button size="sm" variant={c.requiresPayment ? 'secondary' : 'primary'} loading={ocupado === c.id} onClick={() => void reservar(c)}>
                       {c.requiresPayment && c.priceLabel ? `Reservar · se paga en recepción` : 'Reservar'}

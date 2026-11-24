@@ -6,6 +6,7 @@ import type { PortalRoutine, PortalRoutineProgress, RoutineProgress } from '@gym
 import { api } from '@/lib/api';
 import { useSocio } from '@/components/socio';
 import { Badge, Button, Empty, ErrorCarga, Skeleton } from '@/components/ui';
+import { CodigoParaCoach } from '@/components/codigo-coach';
 
 const GRUPO: Record<string, string> = {
   CHEST: 'Pecho', BACK: 'Espalda', SHOULDERS: 'Hombro', BICEPS: 'Bíceps', TRICEPS: 'Tríceps', LEGS: 'Pierna', GLUTES: 'Glúteo', ABS: 'Abdomen',
@@ -63,6 +64,8 @@ export default function RutinaPage() {
         {/* Con título, para que no parezca una pantalla vacía (UX7 Portal). */}
         <h1 className="title mb-12">Tu rutina</h1>
         <Empty icon={<ListChecks />} title="Aún no tienes rutina" text="Pídesela a tu coach en el gimnasio: en cuanto te la asigne, aparece aquí." />
+        {/* D-29 (bloque 3.8): sin coach, el socio genera el código que le dicta al suyo. */}
+        <div className="mt-12"><CodigoParaCoach /></div>
       </div>
     );
   }

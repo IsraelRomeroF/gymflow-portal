@@ -83,7 +83,7 @@ export default function InicioPage() {
         <div className="inicio-col">
           {/* La tarjeta contesta primero "¿puedo entrar hoy?" (UX5-P-01), con la respuesta de la puerta. */}
           <div className="member-card" data-estado={puedeEntrar ? 'ok' : 'no'} data-testid="tarjeta-hoy">
-            <div className="mc-gym">{me.planName ?? me.planEnded?.planName ?? (me.visitPack ? 'Paquete de visitas' : me.dayPass ? 'Pase del día' : 'Sin plan')}{sedeDeLaTarjeta ? ` · ${sedeDeLaTarjeta}` : ''}</div>
+            <div className="mc-gym">{me.planName ?? me.planEnded?.planName ?? (me.visitPack ? 'Paquete de visitas' : me.dayPass ? 'Pase del día' : me.trialPass ? 'Pase de prueba' : 'Sin plan')}{sedeDeLaTarjeta ? ` · ${sedeDeLaTarjeta}` : ''}</div>
             <div className="mc-status">
               {ICONO[estadoHoy.tono]}
               <span>{estadoHoy.titulo}</span>
@@ -93,6 +93,8 @@ export default function InicioPage() {
               <p className="mc-copia" data-testid="datos-de-copia"><WifiOff aria-hidden /> Datos de {haceCuanto(guardadoEn)} · sin señal. Puede haber cambiado.</p>
             )}
             {debe && st && <Link href="/pagos" className="btn btn-volt btn-sm mt-12">{enLinea ? `Pagar ${pesos(st.netBalanceCents)}` : `Ver cómo pagar ${pesos(st.netBalanceCents)}`}</Link>}
+            {/* Sin plan vivo: qué hay y cuánto cuesta, para llegar al mostrador sabiéndolo (D-35; se paga en recepción). */}
+            {!debe && !me.membershipStatus && !me.dayPass && !me.trialPass && <Link href="/pagos/precios" className="btn btn-volt btn-sm mt-12" data-testid="ver-precios">Ver planes y precios</Link>}
             {paquete && <p className="mc-proximo" data-testid="paquete">{paquete}</p>}
             {proximo && <p className="mc-proximo" data-testid="proximo-pago">Próximo pago: <strong className="num">{proximo.monto}</strong> · {proximo.cuando}</p>}
             <div className="mc-meta">
@@ -116,6 +118,17 @@ export default function InicioPage() {
                     <BadgeCheck size={20} className="text-ok" />
                   </li>
                 )}
+                {/* Hoy trae pase de prueba (D-08): gratis, una vez, hoy y en esa sede. */}
+                {me.trialPass && (
+                  <li className="item" data-testid="pase-de-prueba">
+                    <IconTile tone="ok"><Ticket /></IconTile>
+                    <div className="item-body">
+                      <p className="item-title">Hoy traes pase de prueba</p>
+                      <p className="item-sub">Es gratis y vale solo hoy y solo en {me.trialPass.branchName}. Di tu nombre en recepción.</p>
+                    </div>
+                    <BadgeCheck size={20} className="text-ok" />
+                  </li>
+                )}
                 {me.accessMethods.map((m) => (
                   <li key={`${m.modality}-${m.branchName}`} className="item">
                     <IconTile tone={puedeEntrar ? 'ok' : 'neutral'}>
@@ -135,6 +148,15 @@ export default function InicioPage() {
                         ? 'Tu rostro se reconoce solo en esa sucursal. La foto no se guarda: solo una plantilla cifrada en el servidor del gimnasio, ligada a tu consentimiento. En otra sucursal, recepción te abre.'
                         : 'Se reconoce solo en la sucursal donde lo registraste, ligado a tu consentimiento. En otra sucursal, recepción te abre.'}
                     </p>
+                  </li>
+                ) : me.faceRule ? (
+                  /* El gimnasio pide entrar con el rostro (D-06): ya no es «opcional», y se dice qué pasa mientras no lo tenga. */
+                  <li className="item" data-testid="falta-rostro">
+                    <IconTile tone="warn"><ScanFace /></IconTile>
+                    <div className="item-body">
+                      <p className="item-title">Te falta registrar tu rostro</p>
+                      <p className="item-sub">Tu gimnasio pide entrar con el rostro. Regístralo en recepción la próxima vez que vengas; mientras no lo tengas, la gerencia tiene que autorizar cada visita.</p>
+                    </div>
                   </li>
                 ) : (
                   <li className="item">

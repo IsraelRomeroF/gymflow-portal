@@ -52,6 +52,14 @@ export default function ReciboPage({ params }: { params: Promise<{ id: string }>
                   </tbody>
                 </table>
                 <p>{etiqueta(METODO_DE_PAGO, r.method, r.method)}</p>
+                {/* El aviso del cambio de precio de su plan (D-19), con las mismas palabras que el comprobante del mostrador. */}
+                {r.priceNotice && (
+                  <p className="recibo-precio" data-testid="aviso-de-precio">
+                    {r.priceNotice.kind === 'UPCOMING'
+                      ? <>A partir de tu siguiente pago, {r.priceNotice.planName ?? 'tu plan'} cuesta <strong>{pesos(r.priceNotice.toPriceCents)}</strong> (antes {pesos(r.priceNotice.fromPriceCents)}).</>
+                      : <>{r.priceNotice.planName ?? 'Tu plan'} cambió de precio: de {pesos(r.priceNotice.fromPriceCents)} a <strong>{pesos(r.priceNotice.toPriceCents)}</strong> desde este pago.</>}
+                  </p>
+                )}
                 <footer>Comprobante de pago. No es un comprobante fiscal (CFDI); si necesitas factura, pídela en recepción.</footer>
               </article>
               <div className="no-print mt-16">

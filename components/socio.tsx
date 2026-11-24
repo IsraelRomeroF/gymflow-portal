@@ -52,6 +52,7 @@ const TABS = [
 const OTRAS: ReadonlyArray<{ prefijo: string; titulo: string; pestana: string }> = [
   { prefijo: '/asistencia', titulo: 'Asistencia', pestana: '/' },
   { prefijo: '/pagos/recibo', titulo: 'Comprobante', pestana: '/pagos' },
+  { prefijo: '/pagos/precios', titulo: 'Planes y precios', pestana: '/pagos' },
 ];
 
 /**

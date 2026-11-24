@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CreditCard, Store } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, CreditCard, Store, Tag } from 'lucide-react';
 import { api } from '@/lib/api';
 import { concepto, dia, hace, hoyEn, pesos } from '@/lib/format';
 import { Movimientos, textoProximoPago } from '@/components/movimientos';
@@ -188,6 +189,16 @@ export default function PagosPage() {
           </div>
         </div>
       )}
+
+      {/* Qué puede renovar o comprar y cuánto cuesta (D-35): solo se mira; se paga en recepción. */}
+      <Link href="/pagos/precios" className="card item item-suelto mt-12" data-testid="ir-a-precios">
+        <IconTile tone="volt"><Tag /></IconTile>
+        <div className="item-body">
+          <p className="item-title">Renovar o comprar</p>
+          <p className="item-sub">Planes, paquetes de visitas y clases sueltas, con su precio de lista.</p>
+        </div>
+        <ChevronRight size={18} className="muted" />
+      </Link>
 
       {aviso && <div className="mt-12"><Callout tone={aviso.tone}>{aviso.text}</Callout></div>}
 

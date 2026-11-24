@@ -27,7 +27,21 @@ export type Palabras = {
 
 type Socio = Pick<PortalMe,
   'canEnter' | 'accessReason' | 'accessBranchName' | 'accessUsesVisit' | 'visitPack' | 'dayPass' | 'planEnded'
-  | 'membershipStatus' | 'planName' | 'currentPeriodEnd' | 'paidThrough' | 'graceUntil' | 'homeBranchName'>;
+  | 'membershipStatus' | 'planName' | 'currentPeriodEnd' | 'paidThrough' | 'graceUntil' | 'homeBranchName'>
+  // Fase 3, bloque 3.10. Opcionales: la copia sin señal de un portal anterior no los trae.
+  & Partial<Pick<PortalMe, 'trialPass' | 'faceMissing'>>;
+
+/**
+ * D-06 (fase 3, bloque 3.10): su plan o su paquete están en orden, pero el
+ * gimnasio pide entrar con el rostro y no lo tiene registrado. No es «hoy no
+ * puedes entrar»: entra si la gerencia autoriza la visita. Se le dice qué
+ * falta y dónde se arregla, antes de que llegue al mostrador.
+ */
+export const FALTA_EL_ROSTRO: EstadoDeHoy = {
+  titulo: 'Te falta registrar tu rostro',
+  detalle: 'Tu gimnasio pide entrar con el rostro. Regístralo en recepción: toma un minuto. Mientras no lo tengas, la gerencia tiene que autorizar cada visita.',
+  tono: 'warn',
+};
 
 /** El último día de un periodo cuyo fin es semiabierto («AAAA-MM-DD»). */
 function diaAntes(iso: string): string {
@@ -44,8 +58,11 @@ export function estadoDeHoy(me: Socio, p: Palabras): EstadoDeHoy {
   const status = me.membershipStatus;
 
   if (me.canEnter) {
+    // Lo primero que tiene que saber: en la puerta lo van a detener por el rostro (D-06).
+    if (me.faceMissing) return FALTA_EL_ROSTRO;
     const viva = status === 'ACTIVE' || status === 'TRIALING';
     const conElPase = !!me.dayPass && me.dayPass.branchName === me.accessBranchName;
+    const deCortesia = !!me.trialPass && me.trialPass.branchName === me.accessBranchName;
     if (me.accessUsesVisit) {
       const quedan = me.visitPack?.visitsLeft ?? 0;
       return {
@@ -66,6 +83,10 @@ export function estadoDeHoy(me: Socio, p: Palabras): EstadoDeHoy {
     }
     if (conElPase) {
       return { titulo: enOtraSede ? `Hoy entras en ${me.accessBranchName}` : 'Hoy entras', detalle: `Con tu pase del día: vale solo hoy y solo en ${me.dayPass!.branchName}.`, tono: 'ok' };
+    }
+    // Su pase de prueba (D-08): gratis, una vez, el día y la sede donde se lo dieron.
+    if (deCortesia && !viva) {
+      return { titulo: enOtraSede ? `Hoy entras en ${me.accessBranchName}` : 'Hoy entras', detalle: `Con tu pase de prueba: es gratis, vale solo hoy y solo en ${me.trialPass!.branchName}.`, tono: 'ok' };
     }
     if (status === 'PAST_DUE') {
       return { titulo: me.graceUntil ? `Entras hasta el ${p.fechaLarga(me.graceUntil)}` : 'Hoy entras', detalle: conPagado(deuda, 'Tienes un pago pendiente.'), tono: 'warn' };
@@ -92,6 +113,9 @@ export function estadoDeHoy(me: Socio, p: Palabras): EstadoDeHoy {
       return { titulo: 'Tu paquete está por pagarse', detalle: deuda ?? 'En cuanto se registre tu pago en recepción, entras.', tono: 'warn' };
     case 'MEMBER_ARCHIVED':
       return { titulo: 'Hoy no puedes entrar', detalle: 'Tu cuenta está dada de baja. Pregunta en recepción.', tono: 'danger' };
+    // La puerta lo dice así cuando solo le falta el rostro (D-06): no es «pregunta en recepción».
+    case 'BIOMETRIC_REQUIRED':
+      return FALTA_EL_ROSTRO;
     case 'NO_MEMBERSHIP':
     case 'MEMBERSHIP_ENDED':
       break;

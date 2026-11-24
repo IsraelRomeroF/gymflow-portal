@@ -58,6 +58,32 @@ test('paquete de visitas: dice cuántas quedan y avisa de la última', () => {
   assert.equal(lineaDelPaquete(socio({}), palabras), null);
 });
 
+// Fase 3, bloque 3.10 (D-06 y D-08).
+test('con la regla del rostro encendida, a quien no lo tiene se le dice qué le falta y dónde se arregla', () => {
+  const conPlan = { canEnter: true, accessReason: null, membershipStatus: 'ACTIVE' as const, planName: 'Mensual', currentPeriodEnd: '2026-12-19', paidThrough: '2026-12-18' };
+  const e = estadoDeHoy(socio({ ...conPlan, faceMissing: true }), palabras);
+  assert.equal(e.titulo, 'Te falta registrar tu rostro');
+  assert.match(e.detalle, /Regístralo en recepción/);
+  assert.match(e.detalle, /la gerencia tiene que autorizar cada visita/);
+  assert.equal(e.tono, 'warn');
+  assert.ok(!/Hoy entras/.test(e.titulo));
+  // Si la API mandara el rechazo de la puerta tal cual, la frase es la misma y no «Pregunta en recepción».
+  assert.deepEqual(estadoDeHoy(socio({ ...conPlan, canEnter: false, accessReason: 'BIOMETRIC_REQUIRED' }), palabras), e);
+  // Sin la regla (o con rostro), nada cambia; y la copia vieja sin el campo tampoco truena.
+  assert.equal(estadoDeHoy(socio({ ...conPlan, faceMissing: false }), palabras).titulo, 'Hoy entras');
+  assert.equal(estadoDeHoy(socio(conPlan), palabras).titulo, 'Hoy entras');
+});
+
+test('con pase de prueba dice que entra hoy, gratis y solo en esa sede', () => {
+  const e = estadoDeHoy(socio({ canEnter: true, accessReason: null, trialPass: { branchName: 'Centro', validOn: '2026-11-24' } }), palabras);
+  assert.deepEqual(e, { titulo: 'Hoy entras', detalle: 'Con tu pase de prueba: es gratis, vale solo hoy y solo en Centro.', tono: 'ok' });
+  const otra = estadoDeHoy(socio({ canEnter: true, accessReason: null, accessBranchName: 'Norte', trialPass: { branchName: 'Norte', validOn: '2026-11-24' } }), palabras);
+  assert.equal(otra.titulo, 'Hoy entras en Norte');
+  // Con su plan al corriente, el pase no cambia la frase de su plan.
+  const conPlan = estadoDeHoy(socio({ canEnter: true, accessReason: null, membershipStatus: 'ACTIVE', planName: 'Mensual', currentPeriodEnd: '2026-12-19', paidThrough: '2026-12-18', trialPass: { branchName: 'Centro', validOn: '2026-11-24' } }), palabras);
+  assert.match(conPlan.detalle, /cubre hasta/);
+});
+
 test('a quien se le terminó el plan no se le dice que «no tiene membresía» (25-04)', () => {
   const terminado = estadoDeHoy(socio({ planEnded: { planName: 'Mensual', how: 'EXPIRED', paidThrough: '2026-08-18', periodEnd: '2026-08-18' } }), palabras);
   assert.deepEqual(terminado, { titulo: 'Tu mensual terminó', detalle: 'Estuvo pagada hasta el <2026-08-18>. En recepción la renuevas.', tono: 'danger' });
