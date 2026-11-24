@@ -28,6 +28,8 @@ function icono(kind: string): { tono: Tono; pieza: React.ReactNode } {
   if (kind === 'CLASS_TOMORROW') return { tono: 'info', pieza: <CalendarCheck /> };
   if (kind === 'CLASS_HOLD_RELEASED') return { tono: 'warn', pieza: <CalendarX2 /> };
   if (kind === 'NEW_DEVICE') return { tono: 'neutral', pieza: <Smartphone /> };
+  // Su celular o su correo cambió desde el portal (4.8, D-36): si no fue él, tiene que saltar a la vista.
+  if (kind === 'CONTACT_CHANGED') return { tono: 'warn', pieza: <Smartphone /> };
   return { tono: 'neutral', pieza: <FileText /> };
 }
 

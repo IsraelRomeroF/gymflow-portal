@@ -606,3 +606,17 @@ li:last-child > .item-link { border-bottom: 0 !important; }
 .interruptor:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .interruptor, .interruptor::after { transition: none; } }
 
+/* ── Interesados (4.7): planes y precios de la sucursal en el alta (D-31) ── */
+.planes-alta { margin-top: 20px; }
+.planes-alta .list { margin-top: 8px; }
+.planes-alta-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.planes-alta-fila:last-child { border-bottom: 0; }
+.planes-alta-precio { margin: 0; font-weight: 600; white-space: nowrap; text-align: right; }
+.planes-alta .hint { margin-top: 8px; }
+
+/* ── Tus datos (4.8): el socio cambia su celular, su correo y su contacto de emergencia (D-36) ── */
+/* El dato a la izquierda de su botón; en pantalla angosta el botón no se encoge ni se parte. */
+.dato-editable { align-items: center; }
+.dato-editable dd { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.dato-editable dd .btn { flex: none; }
+[data-error="true"] > .input { border-color: var(--danger); }

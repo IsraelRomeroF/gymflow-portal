@@ -6,9 +6,12 @@ import { api } from '@/lib/api';
 import { Button, Callout, Skeleton } from '@/components/ui';
 import { IconTile, Marca } from '@/components/compartido';
 import { CampoFecha } from '@/components/campos';
+import type { PublicPlan } from '@gymflow/core/contracts';
+import { PlanesDeLaSede } from './planes-de-la-sede';
 
 type Documento = { consentType: string; version: string; title: string; bodyText: string; required: boolean };
-type Formulario = { gymName: string; branchName: string; documents: Documento[]; blockedBy: Array<{ kind: string; consentType: string }> };
+/** `plans` (D-31, bloque 4.7): los planes que vende esa sucursal, con su precio de lista. */
+type Formulario = { gymName: string; branchName: string; documents: Documento[]; blockedBy: Array<{ kind: string; consentType: string }>; plans?: PublicPlan[] };
 
 /** Los campos que el servidor puede señalar, con el `id` de su control. */
 const CONTROL: Record<string, string> = {
@@ -249,6 +252,9 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
   return (
     <div className="app app-plain">
       {cabecera(<>Regístrate en <em>2 minutos</em></>, 'Llénalo desde tu teléfono y en recepción solo lo confirman.')}
+
+      {/* D-31: cuánto cuesta, antes de pedirle sus datos. */}
+      <PlanesDeLaSede planes={form.plans ?? []} sede={form.branchName} />
 
       <form onSubmit={enviar} className="mt-8 form-alta" noValidate>
         <p className="section-title eyebrow form-alta-inicio">Tus datos</p>

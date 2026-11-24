@@ -17,7 +17,7 @@ export type MotivoDeSalida = 'cerrada' | 'vencida' | 'inactiva' | 'baja';
 export const AVISO_DE_SALIDA: Record<MotivoDeSalida, { titulo: string; texto: string }> = {
   cerrada: { titulo: 'Tu sesión en este teléfono se cerró', texto: 'Pide en recepción un código nuevo para volver a entrar.' },
   vencida: { titulo: 'Tu acceso en este teléfono venció', texto: 'Cada teléfono queda abierto un tiempo. Pide en recepción un código nuevo para volver a entrar.' },
-  inactiva: { titulo: 'El portal se cerró por falta de uso', texto: 'Pasaron varios días sin abrirlo en este teléfono. Pide en recepción un código nuevo para volver a entrar.' },
+  inactiva: { titulo: 'El portal se cerró por falta de uso', texto: 'Pasaron 30 días sin abrirlo en este teléfono. Pide en recepción un código nuevo para volver a entrar.' },
   baja: { titulo: 'Tu cuenta ya no está activa en este gimnasio', texto: 'Si crees que es un error, pregunta en recepción.' },
 };
 
@@ -38,13 +38,17 @@ export function hastaRecordado(): number | null {
   try { const n = Number(localStorage.getItem(CLAVE_HASTA)); return Number.isFinite(n) && n > 0 ? n : null; } catch { return null; }
 }
 
-/** Qué pasó, si este teléfono tenía el portal abierto: si ya era la fecha, venció; si no, se cerró. */
+/**
+ * Qué pasó, si este teléfono tenía el portal abierto: si ya era la fecha, se cerró por falta de uso; si no, se cerró.
+ * Desde D-04 (bloque 4.1) el portal no tiene fecha tope: queda abierto mientras se use, y llegar a la fecha que
+ * guardó el teléfono sin cookie quiere decir que pasaron 30 días sin abrirlo.
+ */
 function motivoDeSalida(): MotivoDeSalida | null {
   let tenia = false;
   try { tenia = localStorage.getItem(CLAVE_MARCA) !== null || localStorage.getItem(CLAVE_HASTA) !== null; } catch { /* sin almacenamiento */ }
   if (!tenia) return null;
   const hasta = hastaRecordado();
-  return hasta !== null && Date.now() >= hasta - 60_000 ? 'vencida' : 'cerrada';
+  return hasta !== null && Date.now() >= hasta - 60_000 ? 'inactiva' : 'cerrada';
 }
 
 /**

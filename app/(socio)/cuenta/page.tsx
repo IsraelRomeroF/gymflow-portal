@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Download, LogOut, Smartphone } from 'lucide-react';
 import type { PortalSessions } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { antiguedad, dia } from '@/lib/format';
+import { dia } from '@/lib/format';
 import { hastaRecordado, limpiarPortal } from '@/lib/sesion';
 import { useCarga } from '@/lib/carga';
 import { useSocio } from '@/components/socio';
 import { Permisos } from '@/components/permisos';
+import { TusDatos } from '@/components/tus-datos';
 import { Notificaciones } from '@/components/notificaciones';
 import { apagarEnEsteTelefono } from '@/lib/push';
 import { ElegirTema } from '@/components/tema';
@@ -23,12 +24,14 @@ import { Button, IconTile, Section, Sheet } from '@/components/ui';
  * teléfono (cerrar sesión, retirar un permiso, pedir una corrección) abre su
  * propia hoja corta.
  *
- * Tus datos se LEEN aquí; cambiarlos directo desde el teléfono (D-36) llega
- * en la fase 4. Mientras, se pide la corrección y queda con folio.
+ * Tus datos de CONTACTO (celular, correo, contacto de emergencia) se cambian
+ * aquí, directo (D-36; fase 4, bloque 4.8: `components/tus-datos.tsx`). Lo
+ * demás (nombre, nacimiento, CURP, plan, coach) sigue en recepción o por
+ * solicitud de corrección, que queda con folio.
  */
 export default function CuentaPage() {
   const router = useRouter();
-  const { me, toast } = useSocio();
+  const { toast } = useSocio();
   const [cerrar, setCerrar] = useState<'este' | 'todos' | null>(null);
   const [saliendo, setSaliendo] = useState(false);
   // Hasta cuándo queda abierto ESTE teléfono lo dice la API (pendiente de 1.12): antes solo lo sabía el teléfono que lo guardó al activar.
@@ -54,15 +57,8 @@ export default function CuentaPage() {
       <h1 className="title pagina-titulo">Cuenta</h1>
 
       <Section title="Tus datos">
-        <div className="card">
-          <dl className="datos">
-            <div className="dato"><dt>Nombre</dt><dd>{me.fullName}</dd></div>
-            <div className="dato"><dt>Número de socio</dt><dd className="mono">{me.memberCode}</dd></div>
-            {me.homeBranchName && <div className="dato"><dt>Sucursal</dt><dd>{me.homeBranchName}</dd></div>}
-            <div className="dato"><dt>Socio desde</dt><dd>{dia(me.joinedAt, { day: 'numeric', month: 'long', year: 'numeric' })} · hace {antiguedad(me.tenureDays)}</dd></div>
-          </dl>
-        </div>
-        <p className="tiny muted mt-8">¿Algo está mal o cambió tu celular? Dilo en recepción o pide la corrección aquí abajo, en «Tus permisos».</p>
+        {/* Fase 4, bloque 4.8 (D-36): su celular, su correo y su contacto de emergencia los cambia él aquí, directo. */}
+        <TusDatos />
         {/* Derecho de acceso (ARCO): sin pedírselo a nadie. */}
         <a className="btn btn-secondary btn-block mt-12" href="/api/portal/me/export" download="mis-datos.json">
           <Download /> Descargar mis datos
@@ -92,7 +88,8 @@ export default function CuentaPage() {
               </p>
               {hasta !== null && (
                 <p className="item-sub" data-testid="abierto-hasta">
-                  Este teléfono queda abierto hasta el {dia(new Date(hasta))} como máximo; si dejas de usar el portal {sinUso ? `${sinUso} días` : 'unos días'}, se cierra antes.
+                  {/* D-04 (bloque 4.1): ya no hay fecha tope; se cierra solo tras `idleDays` días sin abrirlo. */}
+                  Este teléfono queda abierto mientras uses el portal. Si pasan {sinUso ? `${sinUso} días` : 'varios días'} sin abrirlo, se cierra (hoy, eso sería el {dia(new Date(hasta))}).
                 </p>
               )}
             </div>
