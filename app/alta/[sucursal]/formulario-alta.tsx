@@ -14,6 +14,8 @@ type Formulario = { gymName: string; branchName: string; documents: Documento[];
 const CONTROL: Record<string, string> = {
   firstName: 'fn', lastName: 'ln', birthDate: 'bd', phone: 'ph', email: 'em', memberSince: 'ms',
   emergencyContactName: 'en', emergencyContactPhone: 'ep', healthNotes: 'hn',
+  // D-10 (fase 3, bloque 3.4): mayoría de edad y tutor.
+  adult: 'ad-si', guardianName: 'tn', guardianPhone: 'tp',
 };
 const SALUD_MAXIMO = 1000;
 
@@ -60,7 +62,21 @@ async function enviarAlta(sucursal: string, cuerpo: unknown): Promise<{ id: stri
  * (9-07: ningún QR ni cartel llevaba `?antiguedad=1`, y quien arrancaba en
  * blanco registraba a sus socios de siempre como nuevos); el error va en su
  * campo (9-10); y al terminar hay un folio que dictar en recepción (9-06).
+ *
+ * Fase 3, bloque 3.4 (D-10): se pregunta si tiene 18 años o más. De 15 a 17
+ * escribe el nombre y el celular de su papá, mamá o tutor; su alta queda
+ * «falta su tutor» y se aprueba cuando el tutor firma en el mostrador. A un
+ * menor NO se le pregunta nada de salud: eso lo autoriza y lo dice su tutor.
  */
+
+/** Años cumplidos hoy, con la fecha `AAAA-MM-DD` del campo (el servidor decide con el día de la sucursal). */
+function edad(nacimiento: string): number | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nacimiento)) return null;
+  const hoy = new Date();
+  const mesDia = `${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  return hoy.getFullYear() - Number(nacimiento.slice(0, 4)) - (mesDia < nacimiento.slice(5) ? 1 : 0);
+}
+
 export function FormularioAlta({ sucursal }: { sucursal: string }) {
   const [form, setForm] = useState<Formulario | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +89,9 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
   const [socioDesde, setSocioDesde] = useState('');
   // «¿Ya venías a este gimnasio?»: nada viene marcado; sin respuesta cuenta como nuevo.
   const [yaVenia, setYaVenia] = useState<boolean | null>(null);
+  // «¿Tienes 18 años o más?» (D-10): nada viene marcado. Si ya escribió su nacimiento, manda la fecha.
+  const [adulto, setAdulto] = useState<boolean | null>(null);
+  const [esperaTutor, setEsperaTutor] = useState(false);
   const [salud, setSalud] = useState('');
   // El botón de abajo se queda pegado a la pantalla solo después de pasar por «Contacto» (9-10):
   // antes tapaba «con uno de los dos basta…» justo cuando se estaba leyendo.
@@ -99,13 +118,24 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
   }, [visible, pasoContacto]);
 
   const quitar = (campo: string) => setErrores(({ [campo]: _, ...resto }) => resto);
+  const anios = edad(nacimiento);
+  const esMenor = anios !== null ? anios < 18 : adulto === false;
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form) return;
     const datos = new FormData(e.currentTarget);
-    setEnviando(true);
     setError(null); setErrores({});
+    // Sin fecha de nacimiento hay que contestar la pregunta; quien dice no tener 18 da su fecha.
+    const faltaEdad: Record<string, string> | null = anios === null && adulto === null ? { adult: 'Dinos si tienes 18 años o más' }
+      : anios === null && adulto === false ? { birthDate: 'Si tienes menos de 18 años, escribe tu fecha de nacimiento' } : null;
+    if (faltaEdad) {
+      setErrores(faltaEdad);
+      const el = document.getElementById(CONTROL[Object.keys(faltaEdad)[0]!]!);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); el?.focus({ preventScroll: true });
+      return;
+    }
+    setEnviando(true);
     try {
       const r = await enviarAlta(sucursal, {
         firstName: datos.get('firstName'),
@@ -116,13 +146,18 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
         emergencyContactName: datos.get('emergencyContactName') || null,
         emergencyContactPhone: datos.get('emergencyContactPhone') || null,
         memberSince: yaVenia ? datos.get('memberSince') || null : null,
-        healthNotes: datos.get('healthNotes') || null,
+        // A un menor no se le pregunta nada de salud: lo autoriza su tutor en el mostrador.
+        healthNotes: esMenor ? null : datos.get('healthNotes') || null,
+        adult: !esMenor,
+        guardianName: esMenor ? datos.get('guardianName') || null : null,
+        guardianPhone: esMenor ? datos.get('guardianPhone') || null : null,
         consents: form.documents.map((d) => ({
           consentType: d.consentType,
           version: d.version,
-          granted: aceptado[d.consentType] ?? false,
+          granted: esMenor && d.consentType === 'HEALTH_DATA' ? false : aceptado[d.consentType] ?? false,
         })),
       });
+      setEsperaTutor(esMenor);
       setFolio(r.folio);
       window.scrollTo({ top: 0 });
     } catch (err) {
@@ -186,8 +221,10 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
           <div className="row items-start">
             <IconTile tone="ok"><CircleCheck /></IconTile>
             <div>
-              <p className="item-title">Solo falta pasar a recepción</p>
-              <p className="item-sub">Ya no hay que capturar nada: confirman tus datos, eliges tu plan y te dan tu código para entrar a este portal desde tu celular.</p>
+              <p className="item-title">{esperaTutor ? 'Falta que venga tu papá, mamá o tutor' : 'Solo falta pasar a recepción'}</p>
+              <p className="item-sub" data-testid={esperaTutor ? 'falta-tu-tutor' : undefined}>{esperaTutor
+                ? 'Como tienes menos de 18 años, tu alta se aprueba cuando tu papá, mamá o tutor firma en recepción. Ven con él o ella: ya no hay que capturar nada.'
+                : 'Ya no hay que capturar nada: confirman tus datos, eliges tu plan y te dan tu código para entrar a este portal desde tu celular.'}</p>
             </div>
           </div>
         </div>
@@ -201,7 +238,9 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
     );
   }
 
-  const faltan = form.documents.filter((d) => d.required && !aceptado[d.consentType]).length;
+  // A un menor no se le enseña el permiso de datos de salud: no es suyo para darlo (D-10).
+  const documentos = form.documents.filter((d) => !(esMenor && d.consentType === 'HEALTH_DATA'));
+  const faltan = documentos.filter((d) => d.required && !aceptado[d.consentType]).length;
   /** El error de un campo, debajo de él. */
   const err = (campo: string) => (errores[campo] ? <span className="campo-error" role="alert" id={`${CONTROL[campo]}-error`}>{errores[campo]}</span> : null);
   const marca = (campo: string) => (errores[campo] ? { 'aria-invalid': true as const, 'aria-describedby': `${CONTROL[campo]}-error` } : {});
@@ -214,7 +253,26 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
         <p className="section-title eyebrow form-alta-inicio">Tus datos</p>
         <div className="field"><label className="label" htmlFor="fn">Nombre(s)</label><input id="fn" name="firstName" required autoComplete="given-name" className="input" onChange={() => quitar('firstName')} {...marca('firstName')} />{err('firstName')}</div>
         <div className="field"><label className="label" htmlFor="ln">Apellidos</label><input id="ln" name="lastName" required autoComplete="family-name" className="input" onChange={() => quitar('lastName')} {...marca('lastName')} />{err('lastName')}</div>
-        <div className="field"><label className="label" htmlFor="bd">Fecha de nacimiento</label><CampoFecha id="bd" name="birthDate" value={nacimiento} onChange={(v) => { setNacimiento(v); quitar('birthDate'); }} {...marca('birthDate')} />{err('birthDate')}</div>
+        <div className="field"><label className="label" htmlFor="bd">Fecha de nacimiento</label><CampoFecha id="bd" name="birthDate" value={nacimiento} onChange={(v) => { setNacimiento(v); quitar('birthDate'); quitar('adult'); }} {...marca('birthDate')} />{err('birthDate')}</div>
+        {/* D-10: sin fecha, se pregunta. Con fecha, la respuesta ya se sabe y la pregunta sobra. */}
+        {anios === null && (
+          <fieldset className="field pregunta-si-no">
+            <legend className="label">¿Tienes 18 años o más?</legend>
+            <div className="row gap-8">
+              <button type="button" id="ad-si" className="chip" aria-pressed={adulto === true} onClick={() => { setAdulto(true); quitar('adult'); quitar('birthDate'); }}>Sí</button>
+              <button type="button" className="chip" aria-pressed={adulto === false} onClick={() => { setAdulto(false); quitar('adult'); }}>No, tengo de 15 a 17</button>
+            </div>
+            {err('adult')}
+          </fieldset>
+        )}
+        {esMenor && (
+          <div data-testid="datos-del-tutor">
+            <p className="section-title eyebrow mt-28">Tu papá, mamá o tutor</p>
+            <p className="hint">Como tienes menos de 18 años, tu alta se aprueba cuando él o ella firma en recepción. Dinos a quién llamamos.</p>
+            <div className="field"><label className="label" htmlFor="tn">Su nombre completo</label><input id="tn" name="guardianName" className="input" autoComplete="off" onChange={() => quitar('guardianName')} {...marca('guardianName')} />{err('guardianName')}</div>
+            <div className="field"><label className="label" htmlFor="tp">Su celular</label><input id="tp" name="guardianPhone" type="tel" inputMode="numeric" placeholder="10 dígitos" className="input" autoComplete="off" onChange={() => quitar('guardianPhone')} {...marca('guardianPhone')} />{err('guardianPhone')}</div>
+          </div>
+        )}
 
         <p className="section-title eyebrow mt-28">Contacto</p>
         <div className="field"><label className="label" htmlFor="ph">Celular</label><input id="ph" name="phone" type="tel" inputMode="numeric" autoComplete="tel" placeholder="10 dígitos" className="input" onChange={() => quitar('phone')} {...marca('phone')} />{err('phone')}</div>
@@ -243,7 +301,8 @@ export function FormularioAlta({ sucursal }: { sucursal: string }) {
         <div className="field"><label className="label" htmlFor="ep">Teléfono</label><input id="ep" name="emergencyContactPhone" type="tel" inputMode="numeric" className="input" onChange={() => quitar('emergencyContactPhone')} {...marca('emergencyContactPhone')} />{err('emergencyContactPhone')}</div>
 
         <p className="section-title eyebrow mt-28">Documentos</p>
-        {form.documents.map((d) => (
+        {esMenor && <p className="hint">Lo que aceptes aquí lo confirma tu papá, mamá o tutor al firmar en recepción. Si tienes alguna lesión o padecimiento, lo dirá él o ella ahí.</p>}
+        {documentos.map((d) => (
           <div key={d.consentType} className="card card-pad mt-12">
             <div className="row gap-10">
               <FileSignature size={18} className="muted" />
