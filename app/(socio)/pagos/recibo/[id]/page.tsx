@@ -6,7 +6,7 @@ import { ChevronLeft, Download } from 'lucide-react';
 import type { PortalReceipt } from '@gymflow/core/contracts';
 import { METODO_DE_PAGO, etiqueta } from '@gymflow/core/vocabulario';
 import { api } from '@/lib/api';
-import { concepto, fechaHora, pesos, telefono } from '@gymflow/ui/format';
+import { concepto, fecha, fechaHora, pesos, telefono } from '@gymflow/ui/format';
 import { EstadoCarga, useCarga } from '@gymflow/ui/carga';
 import { Button, Skeleton } from '@/components/ui';
 
@@ -60,7 +60,7 @@ export default function ReciboPage({ params }: { params: Promise<{ id: string }>
                 {r.priceNotice && (
                   <p className="recibo-precio" data-testid="aviso-de-precio">
                     {r.priceNotice.kind === 'UPCOMING'
-                      ? <>A partir de tu siguiente pago, {r.priceNotice.planName ?? 'tu plan'} cuesta <strong>{pesos(r.priceNotice.toPriceCents)}</strong> (antes {pesos(r.priceNotice.fromPriceCents)}).</>
+                      ? <>{r.priceNotice.startsOn ? `A partir del ${fecha(r.priceNotice.startsOn)}` : 'A partir de tu siguiente pago'}, {r.priceNotice.planName ?? 'tu plan'} cuesta <strong>{pesos(r.priceNotice.toPriceCents)}</strong> (antes {pesos(r.priceNotice.fromPriceCents)}).</>
                       : <>{r.priceNotice.planName ?? 'Tu plan'} cambió de precio: de {pesos(r.priceNotice.fromPriceCents)} a <strong>{pesos(r.priceNotice.toPriceCents)}</strong> desde este pago.</>}
                   </p>
                 )}
