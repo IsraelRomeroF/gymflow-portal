@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ChevronLeft, RefreshCw, Store } from 'lucide-react';
 import type { PortalOffer, PortalOfferPlan } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { dia, pesos, ultimoDia } from '@/lib/format';
-import { EstadoCarga, useCarga } from '@/lib/carga';
+import { dia, pesos, ultimoDia } from '@gymflow/ui/format';
+import { EstadoCarga, useCarga } from '@gymflow/ui/carga';
 import { useSocio } from '@/components/socio';
 import { Badge, IconTile, Section, Skeleton } from '@/components/ui';
 

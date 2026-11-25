@@ -1,10 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Dialog } from './dialogo';
+import { Dialog } from '@gymflow/ui/dialogo';
 
 // Lo que el portal comparte con el panel vive en compartido.tsx (idéntico en los dos repos).
-export { Badge, Button, Callout, Empty, ErrorCarga, IconButton, IconTile, Skeleton, type ButtonProps, type Tono } from './compartido';
+export { Badge, Button, Callout, Empty, ErrorCarga, IconButton, IconTile, Skeleton, type ButtonProps, type Tono } from '@gymflow/ui/compartido';
 
 export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
@@ -29,4 +29,4 @@ export function Sheet({ open, onClose, title, children, footer, error }: { open:
   return <Dialog hoja open={open} onClose={onClose} title={title} footer={footer} error={error}>{children}</Dialog>;
 }
 
-export { Dialog, type DialogProps } from './dialogo';
+export { Dialog, type DialogProps } from '@gymflow/ui/dialogo';

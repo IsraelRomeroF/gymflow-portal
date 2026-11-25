@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { ChevronRight, CircleCheck, Receipt, Undo2 } from 'lucide-react';
-import { concepto, dia, pesos } from '@/lib/format';
-import { IconTile } from './compartido';
+import { concepto, dia, pesos } from '@gymflow/ui/format';
+import { IconTile } from '@gymflow/ui/compartido';
 import { COMO_SE_SALDO, METODO_DE_PAGO as METODO } from '@gymflow/core/vocabulario';
 import type { PortalCharge, PortalPayment } from '@gymflow/core/contracts';
 

@@ -6,12 +6,12 @@ import { usePathname } from 'next/navigation';
 import { Home, CalendarDays, Wallet, CircleCheck, UserRound, ListChecks } from 'lucide-react';
 import type { PortalMe } from '@gymflow/core/contracts';
 import { api, apiConOrigen, ApiError, alPerderSesion } from '@/lib/api';
-import { fijarZona } from '@/lib/format';
+import { fijarZona } from '@gymflow/ui/format';
 import { irAActivar } from '@/lib/sesion';
 import { Callout, ErrorCarga, Skeleton } from './ui';
 import { Avisos } from './avisos';
 import { useServiceWorker } from './instalar';
-import { Marca } from '@/components/compartido';
+import { Marca } from '@gymflow/ui/compartido';
 
 /** El socio como lo manda `GET /portal/me`: contrato del núcleo, ya no un tipo a mano. */
 export type Me = PortalMe;

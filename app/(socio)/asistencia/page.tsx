@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import type { PortalAttendance, PortalAttendanceSummary } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { capital, dia, hora, nombreMes } from '@/lib/format';
-import { EstadoCarga, useCarga } from '@/lib/carga';
+import { capital, dia, hora, nombreMes } from '@gymflow/ui/format';
+import { EstadoCarga, useCarga } from '@gymflow/ui/carga';
 import { Empty, Section, Skeleton } from '@/components/ui';
-import { IconButton } from '@/components/compartido';
+import { IconButton } from '@gymflow/ui/compartido';
 
 const SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const dos = (n: number) => String(n).padStart(2, '0');

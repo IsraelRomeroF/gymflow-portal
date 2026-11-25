@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, CreditCard, Store, Tag } from 'lucide-react';
 import { api } from '@/lib/api';
-import { concepto, dia, hace, hoyEn, pesos } from '@/lib/format';
+import { concepto, dia, hace, hoyEn, pesos } from '@gymflow/ui/format';
 import { Movimientos, textoProximoPago } from '@/components/movimientos';
 import { useSocio } from '@/components/socio';
 import { Button, Callout, ErrorCarga, IconTile, Section, Sheet, Skeleton } from '@/components/ui';

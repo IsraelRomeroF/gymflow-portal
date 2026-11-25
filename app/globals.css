@@ -1,5 +1,5 @@
-@import './tokens.css';
-@import './compartido.css';
+@import '@gymflow/ui/tokens.css';
+@import '@gymflow/ui/compartido.css';
 
 /*
  * Portal del socio — sistema de diseño.
@@ -405,7 +405,7 @@ a.btn { text-decoration: none; }
 }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
 .sheet-head .sheet-title { margin: 0 0 14px; }
-/* La hoja es el diálogo espejo del panel (components/dialogo.tsx): un título largo se parte en
+/* La hoja es el diálogo espejo del panel (@gymflow/ui/dialogo): un título largo se parte en
    renglones sin empujar la X, y si trae pie, queda abajo y a la vista (26-14). */
 .sheet-head > div:first-child { flex: 1; min-width: 0; }
 .sheet-title { overflow-wrap: break-word; }
@@ -453,7 +453,7 @@ a.btn { text-decoration: none; }
 
 /* Medidas del portal para los componentes compartidos: más grandes, es para el pulgar. */
 :root:root { --c-eyebrow: var(--t-sm); --c-eyebrow-weight: 700; --c-badge-h: 26px; --c-badge-weight: 700; --c-radius: 16px; --c-tile: 40px; --c-tile-r: 12px; --c-iconbtn: 44px; --c-empty-pad: 32px 20px; --c-skel-r: 14px; }
-/* EstadoCarga con `relleno` (lib/carga.tsx): el error o el esqueleto con el margen de una tarjeta. */
+/* EstadoCarga con `relleno` (@gymflow/ui/carga): el error o el esqueleto con el margen de una tarjeta. */
 .estado-carga { padding: 18px; }
 
 /* ── Tus permisos y tus solicitudes (1.10) ─────────────────────────────────── */

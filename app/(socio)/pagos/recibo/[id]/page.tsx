@@ -6,8 +6,8 @@ import { ChevronLeft, Download } from 'lucide-react';
 import type { PortalReceipt } from '@gymflow/core/contracts';
 import { METODO_DE_PAGO, etiqueta } from '@gymflow/core/vocabulario';
 import { api } from '@/lib/api';
-import { concepto, fechaHora, pesos, telefono } from '@/lib/format';
-import { EstadoCarga, useCarga } from '@/lib/carga';
+import { concepto, fechaHora, pesos, telefono } from '@gymflow/ui/format';
+import { EstadoCarga, useCarga } from '@gymflow/ui/carga';
 import { Button, Skeleton } from '@/components/ui';
 
 /**

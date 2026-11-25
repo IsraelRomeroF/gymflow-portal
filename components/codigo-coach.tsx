@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { KeyRound } from 'lucide-react';
 import { COACH_CODE, type PortalCoach } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { hora } from '@/lib/format';
+import { hora } from '@gymflow/ui/format';
 import { Button } from '@/components/ui';
 
 /**

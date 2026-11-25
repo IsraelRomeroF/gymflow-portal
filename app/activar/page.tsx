@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { AVISO_DE_SALIDA, esMotivoDeSalida, recordarHasta, volverSeguro, type MotivoDeSalida } from '@/lib/sesion';
 import { Button, Callout } from '@/components/ui';
-import { Marca } from '@/components/compartido';
+import { Marca } from '@gymflow/ui/compartido';
 
 /**
  * Activación del portal.

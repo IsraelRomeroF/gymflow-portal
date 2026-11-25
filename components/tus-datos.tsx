@@ -4,9 +4,9 @@ import { useCallback, useState } from 'react';
 import type { PortalContact } from '@gymflow/core/contracts';
 import { useSocio } from './socio';
 import { ApiError, api } from '@/lib/api';
-import { dia, haceTanto, telefono } from '@/lib/format';
-import { useCarga } from '@/lib/carga';
-import { useFormulario } from '@/lib/formulario';
+import { dia, haceTanto, telefono } from '@gymflow/ui/format';
+import { useCarga } from '@gymflow/ui/carga';
+import { useFormulario } from '@gymflow/ui/formulario';
 import { Button, Callout, ErrorCarga, Sheet } from './ui';
 
 /**

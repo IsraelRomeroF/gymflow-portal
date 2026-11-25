@@ -4,10 +4,10 @@ import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CalendarCheck, CalendarX2, ChevronRight, MapPin, UserRound, Users } from 'lucide-react';
 import { api } from '@/lib/api';
-import { capital, dia, hora } from '@/lib/format';
+import { capital, dia, hora } from '@gymflow/ui/format';
 import { useSocio } from '@/components/socio';
 import { Badge, Button, Callout, Empty, ErrorCarga, Sheet, Skeleton } from '@/components/ui';
-import { useCarga } from '@/lib/carga';
+import { useCarga } from '@gymflow/ui/carga';
 import { guardadoHasta, soloPagando } from '@/lib/clase-suelta';
 
 type Clase = {

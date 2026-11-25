@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BellOff, BellRing } from 'lucide-react';
 import type { PortalNotificationTopic, PortalNotifications } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { mensajeDeError, useCarga } from '@/lib/carga';
+import { mensajeDeError, useCarga } from '@gymflow/ui/carga';
 import { admiteNotificaciones, apagarEnEsteTelefono, encenderEnEsteTelefono, permisoDeNotificaciones, suscripcionDeEsteTelefono } from '@/lib/push';
 import { Button, ErrorCarga, IconTile, Skeleton } from './ui';
 

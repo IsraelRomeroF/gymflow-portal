@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Share, X } from 'lucide-react';
 import { Button } from './ui';
-import { IconButton, IconTile } from './compartido';
+import { IconButton, IconTile } from '@gymflow/ui/compartido';
 
 type Aviso = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 const CLAVE = 'gf-instalar-oculto';

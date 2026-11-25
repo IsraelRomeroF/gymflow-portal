@@ -1,5 +1,5 @@
 import type { PublicPlan } from '@gymflow/core/contracts';
-import { pesos } from '@/lib/format';
+import { pesos } from '@gymflow/ui/format';
 
 const UNIDAD: Record<string, [string, string]> = { DAY: ['día', 'días'], WEEK: ['semana', 'semanas'], MONTH: ['mes', 'meses'] };
 

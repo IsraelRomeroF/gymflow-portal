@@ -9,9 +9,9 @@ import {
 } from '@gymflow/core/privacidad';
 import { useSocio } from './socio';
 import { api } from '@/lib/api';
-import { dia } from '@/lib/format';
+import { dia } from '@gymflow/ui/format';
 import { Button, Callout, ErrorCarga, Sheet } from './ui';
-import { useCarga } from '@/lib/carga';
+import { useCarga } from '@gymflow/ui/carga';
 
 type Consentimiento = PortalConsents['consents'][number];
 

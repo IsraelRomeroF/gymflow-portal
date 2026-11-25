@@ -9,13 +9,13 @@ import {
 import type { PortalAttendanceSummary, PortalConsents, PortalStatement } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
 import { estadoDeHoy, haceCuanto, lineaDelPaquete } from '@/lib/acceso';
-import { capital, dia, hace, haceTanto, hora, nombreMes, pesos } from '@/lib/format';
+import { capital, dia, hace, haceTanto, hora, nombreMes, pesos } from '@gymflow/ui/format';
 import { Movimientos, textoProximoPago } from '@/components/movimientos';
 import { useSocio } from '@/components/socio';
 import { InstalarApp } from '@/components/instalar';
 import { Badge, Callout, ErrorCarga, Section, Skeleton } from '@/components/ui';
-import { IconTile } from '@/components/compartido';
-import { useCarga } from '@/lib/carga';
+import { IconTile } from '@gymflow/ui/compartido';
+import { useCarga } from '@gymflow/ui/carga';
 
 type Clase = { id: string; className: string | null; room: string | null; startsAt: string; booked: boolean; coachName?: string | null };
 

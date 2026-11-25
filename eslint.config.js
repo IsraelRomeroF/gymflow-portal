@@ -13,7 +13,7 @@ const nodeGlobals = {
 // Los `catch` que esconden un error como un vacío: `.catch(() => setX([]))`,
 // `.catch(() => { setX({}); })`, `.catch(() => setX(0))` y `.catch(() => [])`.
 // Con algo más dentro (guardar el error, avisar) ya no son silenciosos.
-const MENSAJE_CATCH = "Un error de carga no se muestra como «no hay nada» (26-01): usa useCarga/EstadoCarga (lib/carga.tsx) o guarda el error y dilo.";
+const MENSAJE_CATCH = "Un error de carga no se muestra como «no hay nada» (26-01): usa useCarga/EstadoCarga (@gymflow/ui/carga) o guarda el error y dilo.";
 const VACIO = (ruta) => [
   `[${ruta}.type='ArrayExpression'][${ruta}.elements.length=0]`,
   `[${ruta}.type='ObjectExpression'][${ruta}.properties.length=0]`,
@@ -50,7 +50,7 @@ export default tseslint.config(
       // solo deja la lista vacía (o el objeto vacío, o el cero) hace que «sin
       // red» se lea «sin planes», «sin personal», «0 días que viniste». Con la
       // red caída, recepción concluía que el plan no existía. Se usa `useCarga`
-      // y `EstadoCarga` (lib/carga.tsx), o se guarda el error y se dice.
+      // y `EstadoCarga` (`@gymflow/ui/carga`), o se guarda el error y se dice.
       "no-restricted-syntax": ["error", ...CATCH_SILENCIOSO],
     },
   },

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CircleCheck, ConciergeBell, FileSignature, UsersRound } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button, Callout, Skeleton } from '@/components/ui';
-import { IconTile, Marca } from '@/components/compartido';
-import { CampoFecha } from '@/components/campos';
+import { IconTile, Marca } from '@gymflow/ui/compartido';
+import { CampoFecha } from '@gymflow/ui/campos';
 import type { PublicPlan } from '@gymflow/core/contracts';
 import { PlanesDeLaSede } from './planes-de-la-sede';
 

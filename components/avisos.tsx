@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Bell, BellRing, CalendarCheck, CalendarX2, CircleAlert, FileText, Smartphone, Wallet } from 'lucide-react';
 import type { PortalNotices } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
-import { concepto, dia, hace, hora } from '@/lib/format';
+import { concepto, dia, hace, hora } from '@gymflow/ui/format';
 import { IconTile, Sheet, type Tono } from './ui';
 
 type Aviso = PortalNotices['notices'][number];
