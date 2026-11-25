@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import type { PortalContact } from '@gymflow/core/contracts';
 import { useSocio } from './socio';
 import { ApiError, api } from '@/lib/api';
-import { antiguedad, dia, telefono } from '@/lib/format';
+import { dia, haceTanto, telefono } from '@/lib/format';
 import { useCarga } from '@/lib/carga';
 import { useFormulario } from '@/lib/formulario';
 import { Button, Callout, ErrorCarga, Sheet } from './ui';
@@ -56,7 +56,7 @@ export function TusDatos() {
           <div className="dato"><dt>Nombre</dt><dd>{me.fullName}</dd></div>
           <div className="dato"><dt>Número de socio</dt><dd className="mono">{me.memberCode}</dd></div>
           {me.homeBranchName && <div className="dato"><dt>Sucursal</dt><dd>{me.homeBranchName}</dd></div>}
-          <div className="dato"><dt>Socio desde</dt><dd>{dia(me.joinedAt, { day: 'numeric', month: 'long', year: 'numeric' })} · hace {antiguedad(me.tenureDays)}</dd></div>
+          <div className="dato"><dt>Socio desde</dt><dd>{dia(me.joinedAt, { day: 'numeric', month: 'long', year: 'numeric' })} · {haceTanto(me.tenureDays)}</dd></div>
           {c && (
             <>
               <div className="dato dato-editable" data-testid="dato-celular">
@@ -73,7 +73,7 @@ export function TusDatos() {
                   <Button variant="secondary" size="sm" onClick={() => setHoja('correo')}>{c.hasEmail ? 'Cambiar' : 'Agregar'}</Button>
                 </dd>
               </div>
-              <div className="dato dato-editable" data-testid="dato-emergencia">
+              <div className="dato dato-editable dato-largo" data-testid="dato-emergencia">
                 <dt>Contacto de emergencia</dt>
                 <dd>
                   <span>{c.emergencyContactName ? `${c.emergencyContactName}${c.emergencyContactPhone ? ` · ${telefono(c.emergencyContactPhone)}` : ''}` : c.emergencyContactPhone ? telefono(c.emergencyContactPhone) : 'Sin contacto'}</span>

@@ -9,7 +9,7 @@ import {
 import type { PortalAttendanceSummary, PortalConsents, PortalStatement } from '@gymflow/core/contracts';
 import { api } from '@/lib/api';
 import { estadoDeHoy, haceCuanto, lineaDelPaquete } from '@/lib/acceso';
-import { antiguedad, capital, dia, hace, hora, nombreMes, pesos } from '@/lib/format';
+import { capital, dia, hace, haceTanto, hora, nombreMes, pesos } from '@/lib/format';
 import { Movimientos, textoProximoPago } from '@/components/movimientos';
 import { useSocio } from '@/components/socio';
 import { InstalarApp } from '@/components/instalar';
@@ -100,7 +100,7 @@ export default function InicioPage() {
             <div className="mc-meta">
               <span>{me.fullName}</span>
               <span className="mono nowrap">{me.memberCode}</span>
-              <span>Socio hace {antiguedad(me.tenureDays)}</span>
+              <span>Socio {((t) => (t === 'hoy' ? 'desde hoy' : t))(haceTanto(me.tenureDays))}</span>
             </div>
           </div>
 
